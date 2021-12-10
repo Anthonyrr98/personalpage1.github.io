@@ -1,0 +1,1322 @@
+<!doctype html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Simon Collison | Map</title>
+<meta name="description" content="Welcome to Simon Collison's website. This page features All posts with geographical metadata.">
+
+<!-- Disgracebook sharing stuff -->
+<meta property="og:title" content="Simon Collison | Geotagged posts">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://colly.com/map">
+<meta property="og:site_name" content="Simon Collison">
+<meta property="og:image" content="assets/images/stream-card.png">
+<meta property="og:description" content="All posts with geographical metadata.">
+<!-- Twitter sharing stuff -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:site" content="@colly">
+<meta property="twitter:creator" content="@colly">
+<meta property="twitter:title" content="Simon Collison | Geotagged posts">
+<meta property="twitter:description" content="All posts with geographical metadata.">
+<meta property="twitter:image" content="https://colly.com/assets/images/stream-card.png">
+
+<!-- ICONS -->
+<link rel="apple-touch-icon-precomposed" href="assets/images/apple-touch-icon-152x152.png">
+<link rel="icon" type="image/png" href="assets/images/favicon-194x194.png" sizes="194x194">
+<link rel="icon" type="image/png" href="assets/images/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="assets/images/favicon-16x16.png" sizes="16x16">
+
+<!-- RSS, CSS, JS -->
+<!-- <link href="https://colly.com/articles/feed" rel="alternate" type="application/rss+xml" title="Simon Collison"> -->
+
+<link rel="stylesheet" href="../use.typekit.net/lqx0ztu.css">
+<link href="assets/css/main.css" rel="stylesheet"><link href="assets/css/imageset.css" rel="stylesheet">
+<link rel="webmention" href="https://webmention.io/colly.com/webmention">
+<link rel="pingback" href="https://webmention.io/colly.com/xmlrpc">
+
+</head>
+<body>
+
+  <div class="flash">
+    <div class="main-content">
+        <p class="flash-p"><a href="https://colly.com/work/" onclick="window.fathom.trackGoal('ZXYF981S', 0);"><span>Hire me</span> — Looking for an experienced web and product designer? I’m available →</a></p>
+      </div>
+  </div>
+
+<div class="mc-header">
+
+<div class="main-content">
+
+  <nav>
+
+    <div class="logo">
+
+      <a href="https://colly.com" rel="home" class="logo-item-link">Simon Collison</a>
+      <span class="logo-sub">Well-meaning waffle since 2003.</span>
+    </div>
+
+    <ul class="menu">
+
+    <li class="menu-item"><a href="https://colly.com" class="menu-item-link mil-Home">Home</a></li><li class="menu-item"><a href="https://colly.com/articles" class="menu-item-link mil-Articles">Articles</a></li><li class="menu-item"><a href="https://colly.com/stream" class="menu-item-link mil-Stream">Stream</a></li><li class="menu-item"><a href="https://colly.com/work" class="menu-item-link mil-Work">Work</a></li><li class="menu-item"><a href="https://colly.com/about" class="menu-item-link mil-About">About</a></li>
+    <li class="menu-item mi-st"><a href="/archive" class="menu-item-link" title="Archive"><img class="mil-icon" src="assets/images/icon-archive.svg" alt="Archive"></a></li>
+
+    <li class="menu-item mi-a"><a href="/map" class="menu-item-link" title="Geotagged posts"><img class="mil-icon" src="assets/images/icon-location.svg" alt="Geotagged posts"></a></li>
+
+    <li class="menu-item mi-s"><a href="/search" class="menu-item-link" title="Search"><img class="mil-icon" src="assets/images/icon-search.svg" alt="Search"></a></li>
+
+    <li class="menu-item mi-r"><a href="/contact" class="menu-item-link" title="Contact"><img class="mil-icon" src="assets/images/icon-contact.svg" alt="Contact"></a></li>
+
+    </ul>
+
+</nav>
+
+</div>
+
+</div>
+
+<div class="main-content">
+
+<div class="box-lr">
+
+    <div class="as as-about">
+
+      <header>
+
+        <h1 class="extra-title">Geotagged posts</h1>
+
+      </header>
+
+      
+<p class="">All posts with longitude and latitude metadata.</p>
+
+  <div id="mapdiv"></div>
+  <script src="../cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>
+  <script>
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+
+    epsg4326 =  new OpenLayers.Projection("EPSG:4326"); //WGS 1984 projection
+    projectTo = map.getProjectionObject(); //The map projection (Spherical Mercator)
+
+    var lonLat = new OpenLayers.LonLat( -1.1254612, 52.9533392 ).transform(epsg4326, projectTo);
+
+
+    var zoom=2;
+    map.setCenter (lonLat, zoom);
+
+    var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+
+    // Define markers as "features" of the vector layer:
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.4911163868475, 53.6759624 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/galleries-and-gardens">Galleries and gardens</a><span class="location-date">May 2021</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.5693194, 53.6140685 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/we-went-somewhere">We went somewhere!</a><span class="location-date">April 2021</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.5429792416907, 53.105104051344 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/cromford">Cromford</a><span class="location-date">October 2020</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.0188186, 51.5844701 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/froth-and-rind">Froth &amp; Rind</a><span class="location-date">February 2020</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.1230224, 51.5323954 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/geris-tv-boyfriend">Geri&rsquo;s TV boyfriend</a><span class="location-date">January 2020</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.2236401, 51.4920377 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/brian-and-robins-christmas-compendium">Brian and Robin&rsquo;s Christmas Compendium</a><span class="location-date">December 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.099343655395157, 51.50745665 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/stream/a-few-hours-in-london">A few hours in London</a><span class="location-date">December 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -5.4795574, 50.2148928 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/cornwall">Cornwall</a><span class="location-date">July 2021</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.2429121, 53.4743473 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-twilight-sad-manchester">The Twilight Sad</a><span class="location-date">November 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.6934515355573, 40.4081606 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/guernica">Guernica</a><span class="location-date">November 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.6987235631137, 40.3923994 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/primer-eu-conference-madrid">Primer EU: Futures For All</a><span class="location-date">October 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.099343655395157, 51.50745665 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/olafur-eliasson-in-real-life">Olafur Eliasson: In Real Life</a><span class="location-date">October 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.166187, 54.4476965 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-podcast-that-never-was">The podcast that never was</a><span class="location-date">September 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 9.7274815, 44.1063262 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/cinque-terre-5th-wedding-anniversary">Cinque Terre</a><span class="location-date">September 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.708351753078, 47.5713438 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-ninety-second-tely-10">The 92nd Tely 10</a><span class="location-date">July 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.099343655395157, 51.50745665 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/art-in-real-life-addressing-the-sustainability-challenge">Art in Real Life: Addressing the Sustainability Challenge</a><span class="location-date">July 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.2562200409084, 53.47601905 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-national-castlefield-bowl">The National</a><span class="location-date">July 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 6.771354675293, 51.226614799209 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/selfie-reflection">Selfie-reflection</a><span class="location-date">May 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.11704623699188, 51.506084551231 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/a-special-evening-with-the-national">A special evening with The National at Royal Festival Hall</a><span class="location-date">April 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 1.5344399, 52.0949765 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/a-long-weekend-in-suffolk">A long weekend in Suffolk</a><span class="location-date">April 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.0815361, 53.9590555 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/identity-at-dot-york-2018">Identity at Dot York 2018</a><span class="location-date">April 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.12784028350368, 51.4910906 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/don-mccullin-at-tate-britain">Don McCullin at Tate Britain</a><span class="location-date">March 2019</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.11550209700665, 51.5061189 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/space-shifters">Space Shifters</a><span class="location-date">November 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.14219579165394, 51.55212905 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/metric">Metric</a><span class="location-date">November 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.6545464, 53.3297914 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/david-mellor-factory-and-museum">David Mellor factory and museum</a><span class="location-date">November 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.130857135959, 51.5942224 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/new-order-alexandra-palace">New Order</a><span class="location-date">November 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 13.3888599, 52.5170365 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/berlin">Berlin</a><span class="location-date">September 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -53.5561513, 47.5685946 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/newfoundland-summer-2018">Newfoundland, Summer 2018</a><span class="location-date">August 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.1622053801826, 51.5074889 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-cure-fortieth-anniversary">The Cure&rsquo;s 40th Anniversary</a><span class="location-date">July 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.11678936868059, 51.50573225 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/manic-street-preachers">Manic Street Preachers</a><span class="location-date">June 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.035384188431763, 51.5382588 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-national-all-points-east">The National</a><span class="location-date">June 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 18.069755575651, 59.3123782 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/stockholm">Stockholm</a><span class="location-date">May 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.717972187893, 47.61663235 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/data-watching-part-two">Data watching: part two</a><span class="location-date">May 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.703202192422, 47.61533809268 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/data-watching">Data watching: part one</a><span class="location-date">May 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.7691298922, 35.003583416097 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/sakura-and-the-city">Sakura and the city</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.67694664001, 35.013196954091 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/hoshinoya-kyoto">Hoshinoya Kyoto</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 132.4518156, 34.3916058 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/at-home-in-hiroshima">At home in Hiroshima</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.35714149475, 34.918768942234 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/family-time-in-kawabe">Family time in Kawabe</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.4992288797, 34.66229495 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/grand-sumo-in-osaka">Grand Sumo in Osaka</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 139.76513215022, 35.687849105265 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/hoshinoya-tokyo">Hoshinoya Tokyo</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 139.6671704, 35.6615352 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/bear-pond-and-mameya">Bear Pond and Koffee Mameya</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 139.7124352, 35.6651701 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/meeting-my-wife-for-coffee">Meeting my wife for coffee</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.7556075, 35.021041 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2018-kyoto">Japan 2018: Kyoto</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 132.17829781601, 34.167801323959 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2018-hiroshima">Japan 2018: Hiroshima</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.490357, 34.6198813 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2018-osaka">Japan 2018: Osaka</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 139.7594549, 35.6828387 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2018-tokyo">Japan 2018: Tokyo</a><span class="location-date">April 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.166187, 54.4476965 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/existing-in-four-dimensions">Existing in four dimensions</a><span class="location-date">March 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.1090746035149, 54.4582086 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/a-few-days-in-langdale">A few days in Langdale</a><span class="location-date">February 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -79.3839347, 43.6534817 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/newfoundland-winter-2018">Newfoundland and Toronto, Winter 2018</a><span class="location-date">February 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 11.5753822, 48.1371079 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/munich">Munich</a><span class="location-date">January 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -90.0701156, 29.9499323 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/new-orleans">New Orleans</a><span class="location-date">January 2018</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -5.3009255, 58.1694015 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/little-goat-of-the-air">Little goat of the air</a><span class="location-date">December 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.711715698242, 47.568654834078 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/juncos-the-tiniest-pub-in-newfoundland">Junco&rsquo;s, the tiniest pub in Newfoundland</a><span class="location-date">November 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -117.1766947, 32.6915199 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/los-angeles-and-san-diego">Los Angeles and San Diego</a><span class="location-date">November 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.11486140772733, 51.4656899 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/grizzly-bear">Grizzly Bear</a><span class="location-date">October 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.22435580934937, 51.490558 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-national">The National</a><span class="location-date">September 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -4.9617423, 56.616076 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/im-writing-again">I&rsquo;m writing again</a><span class="location-date">September 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 12.5661817, 55.6845934 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/copenhagen-2017">Copenhagen 2017</a><span class="location-date">August 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 12.607841491699, 55.685132419788 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/haven-festival-copenhagen">Haven Festival, Copenhagen</a><span class="location-date">August 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.715491976289, 47.563986658948 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/tely-10">Newfoundland&rsquo;s 90th Tely 10</a><span class="location-date">July 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.2868507353592, 53.45634525 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/radiohead">Radiohead</a><span class="location-date">July 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -5.3009255, 58.1694015 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/two-weeks-in-the-scottish-highlands">Two weeks in the Scottish Highlands</a><span class="location-date">June 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.28275305692525, 51.5580839 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/x-japan">X Japan</a><span class="location-date">March 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.747017, 47.5490647 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/newfoundland-winter-201617">Newfoundland, Winter 2016/17</a><span class="location-date">January 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -83.5509235, 35.7591101 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/pigeon-forge">Pigeon Forge</a><span class="location-date">January 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.9983246, 40.6956299 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/brooklyn-run">Brooklyn run</a><span class="location-date">January 2017</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.28275305692525, 51.5580839 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-cure-week-of-shows">The Cure</a><span class="location-date">December 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 12.5700724, 55.6867243 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/copenhagen-2016">Copenhagen 2016</a><span class="location-date">August 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -53.110338, 48.6541763 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/newfoundland-summer-2016">Newfoundland, Summer 2016</a><span class="location-date">August 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -4.076177, 53.0684829 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/snowdonia">Snowdonia</a><span class="location-date">May 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 139.7124352, 35.6651701 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2016-tokyo">Japan 2016: Tokyo</a><span class="location-date">April 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.75839996338, 35.04932541164 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2016-kyoto">Japan 2016: Kyoto</a><span class="location-date">April 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 132.30887218048, 34.271448 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2016-hiroshima">Japan 2016: Hiroshima</a><span class="location-date">April 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 135.5258386, 34.6873398 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2016-osaka">Japan 2016: Osaka</a><span class="location-date">April 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 138.4611802, 36.73276 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/japan-2016-jigokudani">Japan 2016: Jigokudani</a><span class="location-date">March 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -118.5264706, 34.0480643 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/los-angeles">Los Angeles</a><span class="location-date">February 2016</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 4.8936041, 52.3727598 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/amsterdam-and-leiden">Amsterdam and Leiden</a><span class="location-date">November 2015</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -105.2705456, 40.0149856 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/boulder-colorado">Boulder, Colorado</a><span class="location-date">October 2015</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -4.572284, 36.594519 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/benalmadena">Benalm&aacute;dena</a><span class="location-date">October 2015</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 8.5423328, 47.3723941 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/germany-switzerland-and-italy">Germany, Switzerland and Italy</a><span class="location-date">September 2015</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 5.7294654, 58.9689601 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/stavanger">Stavanger and Preikestolen</a><span class="location-date">July 2015</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.9529126, 42.0775906 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/upstate-ny">Upstate NY</a><span class="location-date">January 2015</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -52.715149, 47.561701 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/hey-rosetta">Hey Rosetta!</a><span class="location-date">December 2014</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -6.2822207189908, 53.35102655 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/one-night-in-dublin">One night in Dublin</a><span class="location-date">September 2014</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.0999051, 51.5384287 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/arkells">Arkells</a><span class="location-date">August 2014</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.391696, 51.9472048 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/stag-weekend">Stag weekend</a><span class="location-date">July 2014</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 2.3514616, 48.8566969 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/paris">Paris</a><span class="location-date">February 2014</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -123.961527, 45.891774 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/multnomah-falls-and-cannon-beach">Multnomah and Cannon Beach</a><span class="location-date">January 2014</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -9.1365919, 38.7077507 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/a-year-in-review">2013 in review</a><span class="location-date">December 2013</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 12.3345898, 45.4371908 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/venice">Venice</a><span class="location-date">June 2013</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 11.250171784292, 43.7633016 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/waking-in-florence">Waking in Florence</a><span class="location-date">June 2013</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.993550278008, 40.7505247 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/sigur-ros-msg">Sigur R&oacute;s</a><span class="location-date">March 2013</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 6.959974, 50.938361 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/dusseldorf-and-koln">D&uuml;sseldorf and K&ouml;ln</a><span class="location-date">November 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.9901167, 40.7029052 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/creative">Creative Mornings NYC</a><span class="location-date">November 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.9980556, 40.6875 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/make-something-you-love">Make something you love</a><span class="location-date">November 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -94.288609, 46.5205224 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/aiga-design-camp">AIGA Design Camp</a><span class="location-date">October 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.6103642, 45.4972159 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/montreal-gone-kids">Montreal gone kids</a><span class="location-date">August 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.2560637960557, 53.534612 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-stone-roses">The Stone Roses at Heaton Park</a><span class="location-date">July 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -8.6622441325017, 41.184375 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/a-tour-of-esad">A tour of ESAD</a><span class="location-date">June 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 24.9425769, 60.1674098 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/helsinki">Helsinki</a><span class="location-date">May 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -122.3300624, 47.6038321 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/an-event-apart">An Event Apart</a><span class="location-date">April 2012</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.990935087204, 40.687008424743 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/another-lesson-learned">Another lesson learned</a><span class="location-date">October 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 10.7389701, 59.9133301 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/oslo">Frontend, Oslo</a><span class="location-date">October 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 115.8604796, -31.9527121 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/perth-and-fremantle">Perth and Fremantle</a><span class="location-date">July 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -123.1139529, 49.2608724 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/interlink-in-vancouver">Interlink in Vancouver</a><span class="location-date">June 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.9846752, 40.6713828 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/brooklyn-superhero-supply-co">Brooklyn Superhero Supply</a><span class="location-date">June 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -97.7436995, 30.2711286 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/sxsw">SXSW</a><span class="location-date">March 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.942337002888, 64.14452185 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/tenth-icelandic-web-awards">10th Icelandic Web Awards</a><span class="location-date">February 2011</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.3394758, 53.7435722 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/adaptive-systems-at-hd-live">Adaptive Systems at HD Live</a><span class="location-date">December 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.992232189969, 40.774430658135 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-new-pornographers">The New Pornographers</a><span class="location-date">December 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.992768, 40.769709 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/the-walkmen">The Walkmen</a><span class="location-date">December 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -5.9302761, 54.5964411 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/to-belfast-and-back">To Belfast and back</a><span class="location-date">November 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -73.991187214851, 40.687024670205 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/brooklyn-beta">Brilliant Brooklyn Beta</a><span class="location-date">October 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 5.5001456, 50.9654864 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/sneak-preview-genk">Sneak Preview, Genk</a><span class="location-date">September 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.1374061, 50.8220399 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/dconstruct-workshop">dConstruct workshop</a><span class="location-date">September 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.5864648, 51.1657413 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/glastonbury-festival-2010">Glastonbury Festival 2010</a><span class="location-date">June 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -122.4199061, 37.7790262 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/memories-of-a-trip">Memories of another trip</a><span class="location-date">June 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.6019294, 54.9625789 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/design-to-communicate">Design To Communicate</a><span class="location-date">April 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -122.4320024, 37.8060891 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/eeci-san-francisco">EECI 2010 San Francisco</a><span class="location-date">March 2010</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( 4.4811088666204, 52.1518157 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/eeci2009-round-up">EECI2009 roundup</a><span class="location-date">November 2009</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.2959726, 54.4415701 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/four-days-in-remote-wasdale">Four days in remote Wasdale</a><span class="location-date">May 2009</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -1.8096423, 53.3492577 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/dads-tree">Dad&rsquo;s tree</a><span class="location-date">May 2009</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.5344748, 54.433222 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/under-the-stars-and-over-the-moon">Under the stars and over the moon</a><span class="location-date">September 2008</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.94482622641, 64.145639907388 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/gtis-byrjun">&Aacute;g&aelig;tis Byrjun</a><span class="location-date">January 2008</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.2913864850545, 53.46310955 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/arctic-monkeys-old-trafford">Arctic Monkeys</a><span class="location-date">July 2007</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.1991229, 51.4989948 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/future-web-paradigms">Nobody actually saw the future, but we had fun trying</a><span class="location-date">April 2007</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -3.2762422, 54.5409307 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/lakes">What really matters</a><span class="location-date">July 2006</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.2002520023433, 53.48309105 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/oasis">Oasis</a><span class="location-date">June 2005</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.16193786284392, 51.5390165 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/recovering-from-my-oasis-theme-day">Oasis theme day</a><span class="location-date">May 2005</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.940770149231, 64.149045468502 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/its-slow-its-blow-it-sounds-like-snow">It&rsquo;s Slow, it&rsquo;s Blow, it sounds like snow</a><span class="location-date">October 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.941000819206, 64.14905017888 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/say-hello-airwaves-goodbye">Say hello, Airwaves goodbye</a><span class="location-date">October 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.9313261, 64.1459542 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/another-day-another-great-line-up">Another day, another great line-up</a><span class="location-date">October 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.9257632, 64.0653662 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/immeasurable-happiness">Immeasurable happiness</a><span class="location-date">October 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -21.939890384674, 64.148232433808 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/domino-records-night-at-hafnarhus">Domino Records Night at Hafnarh&uacute;s</a><span class="location-date">October 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -0.11486140772733, 51.4656899 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/primal-scream-all-nighter-in-brixton">Primal Scream all-nighter</a><span class="location-date">October 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                                                                                                                    
+    var feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( -2.5864648, 51.1657413 ).transform(epsg4326, projectTo),
+            {description:'<a href="https://colly.com/articles/glastonbury-overview-another-classic">Glastonbury Festival 2004</a><span class="location-date">June 2004</span>'} ,
+            {externalGraphic: '/assets/images/location-20.svg', graphicHeight: 16, graphicWidth: 16, graphicXOffset:-8, graphicYOffset:-8}
+        );
+    vectorLayer.addFeatures(feature);
+
+                                                                                                                                                                                        
+
+    map.addLayer(vectorLayer);
+
+
+    //Add a selector control to the vectorLayer with popup functions
+    var controls = {
+      selector: new OpenLayers.Control.SelectFeature(vectorLayer, { onSelect: createPopup, onUnselect: destroyPopup })
+    };
+
+    function createPopup(feature) {
+      feature.popup = new OpenLayers.Popup("popp",
+          feature.geometry.getBounds(0).getCenterLonLat(),
+          null,
+          '<div class="markerContent">'+feature.attributes.description+'</div>',
+          null,
+          true,
+          function() { controls['selector'].unselectAll(); }
+      );
+      //feature.popup.closeOnMove = true;
+      map.addPopup(feature.popup);
+    }
+
+    function destroyPopup(feature) {
+      feature.popup.destroy();
+      feature.popup = null;
+    }
+
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
+
+  </script>
+
+  <h3 class="col-h2">Sample tags</h3>
+
+
+<ul class="tags">
+  <li class="tag-item"><a href="/map/tag:instagram">Instagram</a></li>
+  <li class="tag-item"><a href="/map/tag:photos">Photos</a></li>
+  <li class="tag-item"><a href="/map/tag:japan">Japan</a></li>
+  <li class="tag-item"><a href="/map/tag:iceland">Iceland</a></li>
+  <li class="tag-item"><a href="/map/tag:usa">USA</a></li>
+  <li class="tag-item"><a href="/map/tag:the national">The National</a></li>
+  <li class="tag-item"><a href="/map/tag:run">Run</a></li>
+  <li class="tag-item"><a href="/map/tag:internet of natural things">Internet of Natural Things</a></li>
+  <li class="tag-item"><a href="/map/tag:notes">Notes</a></li>
+  <li class="tag-item"><a href="/map/tag:setlist">Setlist</a></li>
+  <li class="tag-item"><a href="/map/tag:speaking">Speaking</a></li>
+  <li class="tag-item"><a href="/map/tag:music">Music</a></li>
+  <li class="tag-item"><a href="/map/tag:art">Art</a></li>
+  <li class="tag-item"><a href="/map/tag:travel">Travel</a></li>
+  <li class="tag-item"><a href="/map/tag:outdoors">Outdoors</a></li>
+  <li class="tag-item"><a href="/map/tag:sport">Sport</a></li>
+  <li class="tag-item"><a href="/map/tag:food &amp; drink">Food &amp; Drink</a></li>
+  </ul>
+
+  <p class="as-ext-text">If you’re interested in how this map works, read <a href="https://colly.com/stream/geotagging-posts">this short post</a>.</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="main-content">
+
+<div class="footer">
+
+    <div class="footer-box">
+
+      <h3 class="heading-footer">Elsewhere</h3>
+      <p>Follow me or send an email.</p>
+      <div class="as-share">
+  <a class="twitter" href="https://twitter.com/colly" target="blank"><i></i></a>
+  <a class="instagram" href="https://www.instagram.com/colly/" target="blank"><i></i></a>
+  <a class="dribbble" href="https://dribbble.com/colly" target="blank"><i></i></a>
+  <a class="linkedin" href="https://www.linkedin.com/in/simon-collison-844531145" target="blank"><i></i></a>
+  <a class="email" href="mailto:simoncollison@gmail.com" target="blank"><i></i></a>
+</div>
+
+    </div>
+
+    <div class="footer-box">
+
+      <h3 class="heading-footer">Subscribe</h3>
+      <p>I’ll send you something every once in a while.</p>
+
+      <div id="mc_embed_signup">
+      <form action="https://obviousthings.us19.list-manage.com/subscribe/post?u=5b1f1f1ad3167ba0fd2d00978&amp;id=09a727b83a" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate="">
+      <div id="mc_embed_signup_scroll">
+      <label for="mce-EMAIL" style="display:none">Subscribe</label>
+      <input type="email" value="" name="EMAIL" class="tl-input" id="mce-EMAIL" placeholder="Email address" required="">
+      <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_5b1f1f1ad3167ba0fd2d00978_09a727b83a" tabindex="-1" value=""></div>
+      <input type="submit" class="tl-submit" value="→" name="subscribe" id="mc-embedded-subscribe">
+      </div>
+      </form>
+      </div>
+
+    </div>
+
+    <div class="footer-box">
+
+      <h3 class="heading-footer">Miss the old site?</h3>
+      <p><a href="https://colly.com/v4/">v4 design is archived here</a>.</p>
+      <p><em>“Don’t make that masterpiece go away. We have so little left of what was glorious.”</em>—<a href="https://twitter.com/zeldman/status/981910324075876352">Zeldman</a></p>
+
+    </div>
+
+    <p class="footer-copyright">© 2003–2021 Simon Collison <span class="footer-bullet">•</span> <a href="https://colly.com/articles/feed">RSS feed</a> <span class="footer-bullet">•</span> Built with <a href="https://getkirby.com/">Kirby</a> <span class="footer-bullet">•</span> Tracked with <a href="https://usefathom.com/ref/EYZOIB">Fathom</a>  <span class="footer-bullet">•</span> Hosted by <a href="https://www.guru.co.uk/">Guru</a> <span class="footer-bullet">•</span> <a href="https://www.buymeacoffee.com/Ph3sLNyV6">Buy me a coffee</a> or <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=3SXXFMP55HQJ6&amp;source=url">donate</a>  <span class="footer-bullet">•</span> <a href="https://github.com/colly" rel="me">github.com/colly</a></p>
+
+    <p class="footer-info">Books linked on my site may earn me a commission from indie-supporting bookshop.org. <a href="https://uk.bookshop.org/shop/colly">Visit my book store</a>.</p>
+
+</div>
+
+</div>
+
+<script src="../platypus.colly.com/script.js" data-site="SDETWXKC" excluded-domains="colly,localhost" defer=""></script>
+
+
+
+</body></html>
