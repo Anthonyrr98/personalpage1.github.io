@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="550px" height="550px" viewBox="0 0 550 550" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 62 (91390) - https://sketch.com -->
+    <title>Artboard Copy 5</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Artboard-Copy-5" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group" transform="translate(295.000000, 295.000000) scale(-1, 1) translate(-295.000000, -295.000000) translate(32.000000, 32.000000)">
+            <circle id="Oval" stroke="#21718D" stroke-width="61.174575" cx="328.464394" cy="197.5" r="197.5"></circle>
+            <polygon id="Rectangle" fill="#21718D" transform="translate(129.669715, 400.497924) rotate(-44.000000) translate(-129.669715, -400.497924) " points="13.1697148 367.606619 246.169715 367.606619 246.169715 433.389228 13.1697148 433.389228"></polygon>
+            <path d="M47.4237716,446 C65.2732964,446 79.7431952,460.469899 79.7431952,478.319424 L79.7431952,480.463185 C79.7431952,498.31271 65.2732964,512.782609 47.4237716,512.782609 C29.5742468,512.782609 15.104348,498.31271 15.104348,480.463185 L15.104348,478.319424 C15.104348,460.469899 29.5742468,446 47.4237716,446 Z" id="Rectangle" fill="#21718D" transform="translate(47.423772, 479.391304) rotate(44.000000) translate(-47.423772, -479.391304) "></path>
+        </g>
+    </g>
+</svg>
