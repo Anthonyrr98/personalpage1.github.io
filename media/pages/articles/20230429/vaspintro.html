@@ -1,0 +1,366 @@
+<!doctype html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>赵荣力｜文章</title>
+<meta name="description" content="文章">
+
+<!-- Disgracebook sharing stuff -->
+<meta property="title" content="赵荣力">
+<meta property="type" content="website">
+<meta property="url" content="https://rlzhao.com/">
+<meta property="site_name" content="rlzhao">
+<meta property="image" content="assets/images/icon/homepage.JPG">
+<meta property="description" content="vloger，工程师，大宝贝">
+
+<!-- ICONS -->
+<link rel="apple-touch-icon-precomposed" href="https://rlzhao.com/assets/images/icon/152x152.JPG">
+<link rel="icon" type="image/png" href="https://rlzhao.com/assets/images/icon/194x194.png" sizes="194x194">
+<link rel="icon" type="image/png" href="https://rlzhao.com/assets/images/icon/32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="https://rlzhao.com/assets/images/icon/16x16.png" sizes="16x16">
+
+<!-- RSS, CSS, JS -->
+<!-- <link href="https://rlzhao.com/articles/feed" rel="alternate" type="application/rss+xml" title="赵荣力"> -->
+
+<link rel="stylesheet" href="assets/css/stylesheet/lqx0ztu.css">
+<link href="https://rlzhao.com/assets/css/main.css" rel="stylesheet"><link href="https://rlzhao.com/assets/css/imageset.css" rel="stylesheet">
+
+
+
+<!-- Highlight语法高亮 -->
+<link rel="stylesheet" type="text/css" href="https://rlzhao.com/highlight/styles/monokai.min.css">
+<script src="https://rlzhao.com/highlight/highlight.min.js"></script>
+<script>
+  hljs.highlightAll();
+</script>
+
+
+
+</head>
+<body>
+
+  <div class="flash">
+    <div class="main-content">
+        <p class="flash-p"><a href="https://rlzhao.com/work/" onclick="window.fathom.trackGoal('ZXYF981S', 0);"><span>小彩蛋</span></a></p>
+      </div>
+  </div>
+
+<div class="mc-header">
+
+<div class="main-content">
+
+  <nav>
+
+    <div class="logo">
+
+      <a href="https://rlzhao.com" rel="home" class="logo-item-link">赵荣力</a>
+      <span class="logo-sub">每年每月每日，都很快乐！</span>
+    </div>
+
+    <ul class="menu">
+
+    <li class="menu-item"><a href="https://rlzhao.com" class="menu-item-link mil-Home">主页</a></li>
+    <li class="menu-item  is-active"><a href="https://rlzhao.com/articles" class="menu-item-link mil-Articles">文章</a></li>
+    <li class="menu-item"><a href="https://rlzhao.com/work" class="menu-item-link mil-Work">日常生活</a></li>
+    <li class="menu-item"><a href="https://rlzhao.com/about" class="menu-item-link mil-About">关于我</a></li>
+
+  
+    <li class="menu-item mi-st"><a href="http://rlzhao.com/cangpin/xiatian.html" class="menu-item-link" title="Archive">
+    <img class="mil-icon" src="https://rlzhao.com/assets/images/homepageicon/icon-archive.svg" alt="Archive"></a></li>
+
+    <li class="menu-item mi-a"><a href="/map" class="menu-item-link" title="Geotagged posts">
+      <img class="mil-icon" src="https://rlzhao.com/assets/images/homepageicon/icon-location.svg" alt="Geotagged posts"></a>
+    </li>
+
+    <li class="menu-item mi-s"><a href="/search" class="menu-item-link" title="Search">
+      <img class="mil-icon" src="https://rlzhao.com/assets/images/homepageicon/icon-search.svg" alt="Search"></a>
+    </li>
+
+    <li class="menu-item mi-r"><a href="/contact" class="menu-item-link" title="Contact">
+      <img class="mil-icon" src="https://rlzhao.com/assets/images/homepageicon/icon-contact.svg" alt="Contact"></a>
+    </li>
+
+    </ul>
+
+</nav>
+
+</div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="main-content">
+
+  <div class="as">
+  
+  <main>
+  <article>
+   <header>
+    
+    <p class="as-date" itemprop="datePublished">2023年4月29日<span>/</span> <a href="vaspintro.html">
+      编程</a></p>
+  
+    <h1 class="as-title">Vasp实用教程以及一些代码注释<span class="as-rating" style="--rating: 4.8;" aria-label="Rated 5 out of 5"></span></h1>
+  </header>
+  
+    <p class="as-subtitle">展示一些最近用的vasp代码，包含INCAR,(POSCAR,POTCAR,KPOINTS)由vaspkit生成</p>
+  
+
+
+    <i class="as-subtitle">所有代码仅供参考，目前在我的结构上能完美运行
+    
+
+    <h2>第一步弛豫过程</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_cy">INCAR</a></h3>
+    <pre><code class="language-python">
+      Global Parameters
+      ISTART =  0            (Read existing wavefunction; if there)
+      ISPIN  =  1            (Non-Spin polarised DFT)
+      # ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+      LREAL  = AUTO       (Projection operators: automatic)
+      ENCUT  =  500        (Cut-off energy for plane wave basis set, in eV)
+      PREC   =  Accurate       (Precision level)
+      LWAVE  = .FALSE.        (Write WAVECAR or not)
+      LCHARG = .FALSE.        (Write CHGCAR or not)
+      ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+      # LVTOT  = .TRUE.      (Write total electrostatic potential into LOCPOT or not)
+      # LVHAR  = .TRUE.      (Write ionic + Hartree electrostatic potential into LOCPOT or not)
+      # NELECT =             (No. of electrons: charged cells; be careful)
+      # LPLANE = .TRUE.      (Real space distribution; supercells)
+      # NPAR   = 4           (Max is no. nodes; don't set for hybrids)
+      # Nwrite = 2           (Medium-level output)
+      # KPAR   = 2           (Divides k-grid into separate groups)
+      #NGX    = 500         (FFT grid mesh density for nice charge/potential plots)
+      #NGY    = 500         (FFT grid mesh density for nice charge/potential plots)
+      #NGZ    = 500         (FFT grid mesh density for nice charge/potential plots)
+      NCORE = 4
+      
+      
+      Lattice Relaxation
+      NSW    =  300          (number of ionic steps)
+      ISMEAR =  0            (gaussian smearing method )
+      SIGMA  =  0.05         (please check the width of the smearing)
+      IBRION =  2            (Algorithm: 0-MD; 1-Quasi-New; 2-CG)
+      ISIF   =  2        (optimize atomic coordinates and lattice parameters)
+      EDIFFG = -0.01      (Ionic convergence; eV/AA)
+      EDIFF  =  1E-06        (SCF energy convergence; in eV)
+      PREC   =  Normal     (Precision level)
+      ISYM = 0
+      
+      DFT-D3 Correction
+      IVDW   =  11           (DFT-D3 method of method with no damping)
+      
+    </code></pre>
+    
+    <h2>第二步电子自洽</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_zq">INCAR</a></h3>
+    <pre><code class="language-python">
+      Global Parameters
+      ISTART =  1            (Read existing wavefunction; if there)
+      ISPIN  =  1            (Non-Spin polarised DFT)
+      # ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+      LREAL  = .FALSE.       (Projection operators: automatic)
+      ENCUT  =  500       (Cut-off energy for plane wave basis set, in eV)
+      PREC   =  Normal       (Precision level)
+      LWAVE  = .TRUE.        (Write WAVECAR or not)
+      LCHARG = .TRUE.        (Write CHGCAR or not)
+      ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+      # LVTOT  = .TRUE.      (Write total electrostatic potential into LOCPOT or not)
+      # LVHAR  = .TRUE.      (Write ionic + Hartree electrostatic potential into LOCPOT or not)
+      # NELECT =             (No. of electrons: charged cells; be careful)
+      # LPLANE = .TRUE.      (Real space distribution; supercells)
+      # NPAR   = 4           (Max is no. nodes; don't set for hybrids)
+      # Nwrite = 2           (Medium-level output)
+      # KPAR   = 2           (Divides k-grid into separate groups)
+      # NGX    = 500         (FFT grid mesh density for nice charge/potential plots)
+      # NGY    = 500         (FFT grid mesh density for nice charge/potential plots)
+      # NGZ    = 500         (FFT grid mesh density for nice charge/potential plots)
+      NCORE = 8
+      IVDW =11
+      
+      ISMEAR =  0            (gaussian smearing method)
+      SIGMA  =  0.05         (please check the width of the smearing)
+      NELM   =  200           (Max electronic SCF steps)
+      EDIFF  =  1E-06        (SCF energy convergence; in eV)
+      EDIFFG = -0.01
+      ISIF = 2
+      ISYM =0
+      IBRION =2      
+    </code></pre>
+
+    <h2>第三步能带计算</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_band">INCAR</a></h3>
+    <pre><code class="language-python">
+      Global Parameters
+ISTART =  1            (Read existing wavefunction; if there)
+ISPIN  =  1            (Non-Spin polarised DFT)
+ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+LREAL  = .FALSE.       (Projection operators: automatic)
+ENCUT  =  500       (Cut-off energy for plane wave basis set, in eV)
+PREC   =  Normal       (Precision level)
+LWAVE  = .TRUE.        (Write WAVECAR or not)
+LCHARG = .TRUE.        (Write CHGCAR or not)
+ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+# LVTOT  = .TRUE.      (Write total electrostatic potential into LOCPOT or not)
+# LVHAR  = .TRUE.      (Write ionic + Hartree electrostatic potential into LOCPOT or not)
+# NELECT =             (No. of electrons: charged cells; be careful)
+# LPLANE = .TRUE.      (Real space distribution; supercells)
+# NPAR   = 4           (Max is no. nodes; don't set for hybrids)
+# Nwrite = 2           (Medium-level output)
+# KPAR   = 2           (Divides k-grid into separate groups)
+# NGX    = 500         (FFT grid mesh density for nice charge/potential plots)
+# NGY    = 500         (FFT grid mesh density for nice charge/potential plots)
+# NGZ    = 500         (FFT grid mesh density for nice charge/potential plots)
+NCORE = 8
+IVDW =11
+
+ISMEAR =  0            (gaussian smearing method)
+SIGMA  =  0.05         (please check the width of the smearing)
+NELM   =  200           (Max electronic SCF steps)
+EDIFF  =  1E-06        (SCF energy convergence; in eV)
+EDIFFG = -0.01
+ISIF = 2
+ISYM =0
+IBRION =2
+LORBIT = 11    
+    </code></pre>
+      
+
+
+    <h2>第四步态密度计算</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_dos">INCAR</a></h3>
+    <pre><code class="language-python">
+      SYSTEM = 6-0
+      Global Parameters
+        ISTART =  1           (Read existing wavefunction; if there)
+        ISPIN  =  2
+        ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+        LREAL  = .F.          (Projection operators: automatic)
+      PREC   =  Normal       (Precision level)
+        ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+        NCORE = 8
+        ENCUT=500
+        NSW = 0
+        IBRION =  -1
+        
+      Static Calculation
+        ISMEAR =  -5           (gaussian smearing method)
+        SIGMA  =  0.05         (please check the width of the smearing)
+        NELM   =  60           (Max electronic SCF steps)
+        EDIFF  =  1E-06        (SCF energy convergence; in eV)
+        ISYM   =  0
+        NBANDS =  256
+      
+      
+       LORBIT =  11           (PAW radii for projected DOS)
+       NEDOS  =  2001         (DOSCAR points)
+       EMIN   =  -30
+       EMAX   =  30           (DOS fanwei)
+    </code></pre>
+
+
+
+
+    
+    
+    
+  </div></aside>
+  
+ 
+  
+  
+    </article>
+  </main>
+</div>
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  </div>
+  
+  <div id="modal01" class="w3-modal" onclick="this.style.display='none'">
+    <img class="w3-modal-content" id="img01">
+  </div>
+  
+  <script>
+  function onClick(element) {
+    document.getElementById("img01").src = element.src;
+    document.getElementById("modal01").style.display = "block";
+  }
+  </script>
+
+
+
+
+
+
+
+<!-- 底栏-->
+
+<div class="main-content">
+
+  <div class="footer">
+  
+      <div class="footer-box">
+  
+        <h3 class="heading-footer">我的社交平台</h3>
+        <p>关注我或者给我发消息.</p>
+        <div class="as-share">
+    <a class="bilibili" href="https://space.bilibili.com/281606553" target="blank"><i></i></a>
+    <a class="instagram" href="https://www.instagram.com/zhaorongli_/" target="blank"><i></i></a>
+    <a class="weibo" href="https://weibo.com/u/7091405797" target="blank"><i></i></a>
+    <a class="weixin" href="./assets/images/weixin/IMG_0218.JPG" target="blank"><i></i></a>
+    <a class="email" href="mailto:1061965034@qq.com" target="blank"><i></i></a>
+    <a class="youtube" href="https://www.youtube.com/channel/UCZnoVnEN6k03dfa53QqKbLQ" target="blank"><i></i></a>
+    <a class="github" href="https://github.com/Anthonyrr98" target="blank"><i></i></a>
+  </div>
+  
+      </div>
+  
+     
+  
+      <div class="footer-box">
+  
+        <h3 class="heading-footer">我还有另外一个网站</h3>
+        <p><a href="http://www.zrldyn.com/">我们的故事</a>.</p>
+        <p><em>“又等来了一个春天”</em></p>
+  
+      </div>
+  
+      <p class="footer-copyright">© 2021 Anthony 
+        <span class="footer-bullet">•</span> 
+      
+        <a href="https://github.com/Anthonyrr98/personalpage1.github.io" rel="me">github</a>
+      </p>
+  
+      
+  
+  </div>
+  
+  </div>
+  
+  <script src="../platypus.rlzhao.com/script.js" data-site="SDETWXKC" excluded-domains="rlzhao,localhost" defer=""></script>
+  
+  
+  
+  </body></html>
