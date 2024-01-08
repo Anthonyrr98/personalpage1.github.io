@@ -30,3 +30,9 @@
             hljs.highlightAll();
         </script>
 ```
+使用时例子
+```html
+        <code class="language-python">
+            print('Hello World!')
+        </code>
+```
