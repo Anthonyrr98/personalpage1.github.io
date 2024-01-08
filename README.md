@@ -16,10 +16,21 @@
     - [test](#)
 - [插件](#插件的使用)
     - [语法高亮](##语法高亮使用)
-    - [test](#)
+    - [文件树](##文件树)
     - [test](#)
 
 
+
+
+
+
+
+
+
+
+
+
+# 插件
 ## 语法高亮使用<br/>
 在head里嵌入语法高亮
 
@@ -36,3 +47,44 @@
             print('Hello World!')
         </code>
 ```
+## 文件树<br/>
+
+```
+tree D:\github\personalpage1.github.io > tree.txt // 生成树
+```
+```
+        personalpage1.github.io
+        ├─assets
+        │  ├─css                                // Css文件夹
+        │  │  ├─stylesheet
+        │  │  └─templates
+        │  ├─images                             // 小图标
+        │  │  ├─homepageicon
+        │  │  ├─icon
+        │  │  ├─tl
+        │  │  └─weixin
+        │  └─js                                 // js文件夹
+        ├─highlight                             // 语法高亮文件夹
+        │  ├─es
+        │  │  └─languages
+        │  ├─languages
+        │  └─styles
+        │      └─base16
+        └─media
+            └─pages
+                ├─articles                      // 文章文件夹
+                │  ├─20210920
+                │  │  └─qingyanguzhen
+                │  ├─20211128
+                │  │  └─huaximifen
+                │  ├─20220430
+                │  │  └─qianlingshan
+                │  ├─20220810
+                │  │  └─buildblog
+                │  ├─20230207
+                │  ├─20230429
+                │  └─20230503
+                └─work                           // 日常文件夹
+                    └─work
+```
+
