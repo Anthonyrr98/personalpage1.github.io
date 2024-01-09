@@ -43,9 +43,11 @@
 ```
 使用时例子
 ```html
-        <code class="language-python">
-            print('Hello World!')
-        </code>
+        <pre>
+            <code class="language-python">
+                  print('Hello World!')
+            </code>
+        </pre> 
 ```
 ## 文件树<br/>
 
