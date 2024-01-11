@@ -11,17 +11,20 @@
 <meta property="type" content="website">
 <meta property="url" content="https://rlzhao.com/">
 <meta property="site_name" content="rlzhao">
-<meta property="image" content="assets/images/icon/homepage.JPG">
+<meta property="image" content="https://rlzhao.com/assets/images/icon/homepage.JPG">
 
 
 <!-- ICONS -->
-<link rel="apple-touch-icon-precomposed" href="assets/images/icon/152x152.JPG">
-<link rel="icon" type="image/png" href="assets/images/icon/194x194.png" sizes="194x194">
-<link rel="icon" type="image/png" href="assets/images/icon/32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="assets/images/icon/16x16.png" sizes="16x16">
+<link rel="apple-touch-icon-precomposed" href="https://rlzhao.com/assets/images/icon/152x152.JPG">
+<link rel="icon" type="image/png" href="https://rlzhao.com/assets/images/icon/194x194.png" sizes="194x194">
+<link rel="icon" type="image/png" href="https://rlzhao.com/assets/images/icon/32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="https://rlzhao.com/assets/images/icon/16x16.png" sizes="16x16">
 
 <!-- CSS -->
-<link href="assets/css/main.css" rel="stylesheet"><link href="assets/css/imageset.css" rel="stylesheet">
+<link href="https://rlzhao.com/assets/css/main.css" rel="stylesheet"><link href="https://rlzhao.com/assets/css/imageset.css" rel="stylesheet">
+
+<!-- latex -->
+<script src="https://cdn.bootcss.com/mathjax/3.0.5/es5/tex-mml-chtml.js"></script>
 
 <!-- 百度统计-->
 <script>
@@ -42,7 +45,6 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-LYDJ58L604');
 </script>
 </head>
@@ -82,94 +84,37 @@
 
 
 <div class="main-content">
-<header>
-<h1 class="extra-title">更新于2024年1月11日</h1>
-<h4 >如果有哪个工具不能用了，请及时发邮件联系我(1061965034@qq.com)</h4>
-</header>
 
-  
-  <!-- Stirling-PDF-->
-<div class="blog-box">
-    <p class="as-date__multi">2024年1月11日<span>/</span> 
-      <a>文本处理</a>
+
+<h1 align="center" class="page-title">相关色温的计算(Correlated Colour Temperature)</h1></header>
+	<p align="center">input X &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<input type="text" id="a" onkeyup="sum(this);" /></p> 
+	<p align="center">input Y &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<input type="text" id="b" onkeyup="sum(this);" /></p>  
+	<p align="center">output n &nbsp&nbsp&nbsp&nbsp&nbsp<input type="text" id="c" onkeyup="sum(this);" /></p>
+	<p align="center">output CCT <input type="text" id="z" onkeyup="sum(this);" /></p>
+
+
+
+
+    <p class="streamitem-stamp">
+      <span class="streamitem-date" ><b>参考公式：</b></span>
     </p>
-    <h2 class="as-title__multi">
-    <a href="http://101.35.252.175:8080/">Stirling-PDF</a>
-    </h2>
-    <span >App version: 0.19</span>
-       <p class="as-subtitle__multi">简介：本地托管的Web应用程序，允许您对PDF文件执行各种操作</p>
-</div>
 
-<!-- IT-TOOLS-->
-<div class="blog-box">
-  <p class="as-date__multi">2024年1月11日<span>/</span> 
-    <a>网络开发工具</a>
+
+  $$C C T = - 437 n ^ { 3 } + 3601 n ^ { 2 } - 6861 n + 5514.31$$
+
+  $$n = ( x - x _ { e } ) / ( y - y _ { e } )$$
+
+  $$x _ { e } = 0.3320 , y _ { e } = 0.186$$
+
+  <p class="streamitem-stamp">
+    <span class="streamitem-date" ><b>参考文献：</b></span>
   </p>
-  <h2 class="as-title__multi">
-  <a href="http://101.35.252.175:9080/">IT-TOOLS</a>
-  </h2>
-  <span >App version: 2023.12.21-5ed3693</span>
-     <p class="as-subtitle__multi">简介：为开发人员收集了方便的在线工具</p>
-</div>
-
-<!-- SyncTV-->
-<div class="blog-box">
-  <p class="as-date__multi">2024年1月11日<span>/</span> 
-    <a>多人同时观影平台</a>
-  </p>
-  <h2 class="as-title__multi">
-  <a href="http://101.35.252.175:9085/">SyncTV</a>
-  </h2>
-  <span >App version: 0.3.4</span>
-     <p class="as-subtitle__multi">简介：同步观看、剧场、直播、视频</p>
-</div>
-
-
-<!-- CCT-->
-<div class="blog-box">
-  <p class="as-date__multi">2024年1月11日<span>/</span> 
-    <a>相关色温计算</a>
-  </p>
-  <h2 class="as-title__multi">
-  <a href="https://rlzhao.com/media/pages/tools/CCT.html">CCT计算</a>
-  </h2>
-  <span >App version: 1.0.0</span>
-     <p class="as-subtitle__multi">简介：计算CCT的值</p>
-</div>
 
 
 
+<a href="https://doi.org/10.1016/j.ceramint.2023.05.126">  Zhao, Rongli, et al. Thermally-stable novel NaBaBi<sub>2</sub>(PO<sub>4</sub>)<sub>3</sub>: Sm<sup>3+</sup>/Dy<sup>3+</sup> white phosphors with tunable photoluminescence. Ceramics International, 49.15 (2023): 25795-25805.</a>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 <div class="main-content">
@@ -199,3 +144,13 @@
   </div>
 </div>
 </body></html>
+
+<script type="text/javascript">
+  function sum(obj) {
+
+      var a = document.getElementById("a").value;
+      var b = document.getElementById("b").value;
+      c.value = (a-0.332)/ (b-0.186) ;
+      z.value = -437*(c.value)*(c.value)*(c.value)+3601*(c.value)*(c.value)-6861*(c.value)+5514.31;
+  }
+  </script>

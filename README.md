@@ -17,7 +17,7 @@
 - [插件](#插件)
     - [语法高亮使用](##语法高亮使用)
     - [文件树](##文件树)
-    - [test](#)
+    - [LaTex](##LaTex)
 
 
 
@@ -90,3 +90,11 @@ tree D:\github\personalpage1.github.io > tree.txt // 生成树
                     └─work
 ```
 
+## LaTex<br/>
+引入MathJax插件
+
+```html
+        <!-- latex -->
+        <script src="https://cdn.bootcss.com/mathjax/3.0.5/es5/tex-mml-chtml.js"></script>
+```
+使用时直接使用LaTex语法即可
