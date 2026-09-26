@@ -1,0 +1,24 @@
+{% if legacyPage %}
+  {% set pager = collections.life.length | lifePager(legacyPage) %}
+{% else %}
+  {% set pager = collections.life.length | lifePager(0, pagination.pageNumber) %}
+{% endif %}
+<nav class="life-pager" aria-label="生活记录分页">
+  <div class="life-pager-main">
+    {% if pager.older %}<a class="life-pager-direction" href="{{ pager.older.url }}">← 较早一页</a>{% else %}<span class="life-pager-direction is-disabled" aria-disabled="true">← 较早一页</span>{% endif %}
+    <div class="life-pager-nearby" aria-label="相邻页码">
+      {% for item in pager.nearby %}
+        {% if item.current %}<span class="is-current" aria-current="page">{{ item.number }}</span>{% else %}<a href="{{ item.url }}" aria-label="第 {{ item.number }} 页">{{ item.number }}</a>{% endif %}
+      {% endfor %}
+    </div>
+    {% if pager.newer %}<a class="life-pager-direction" href="{{ pager.newer.url }}">较新一页 →</a>{% else %}<span class="life-pager-direction is-disabled" aria-disabled="true">较新一页 →</span>{% endif %}
+  </div>
+  <details class="life-pager-picker">
+    <summary>第 {{ pager.current }} / {{ pager.total }} 页 <span aria-hidden="true">⌄</span><span class="life-pager-summary-hint">全部页码</span></summary>
+    <div class="life-pager-all" aria-label="跳转到指定页">
+      {% for item in pager.all %}
+        {% if item.current %}<span class="is-current" aria-current="page">{{ item.number }}</span>{% else %}<a href="{{ item.url }}" aria-label="跳转到第 {{ item.number }} 页">{{ item.number }}</a>{% endif %}
+      {% endfor %}
+    </div>
+  </details>
+</nav>
