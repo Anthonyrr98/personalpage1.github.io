@@ -5,6 +5,7 @@ from email.message import Message
 from io import BytesIO
 from pathlib import Path
 import runpy
+import socket
 from tempfile import TemporaryDirectory
 from threading import Thread
 from types import SimpleNamespace
@@ -20,6 +21,18 @@ EDITOR = runpy.run_path(str(Path(__file__).resolve().parents[1] / "life_editor.p
 
 
 class PublishTests(unittest.TestCase):
+    def test_proxy_fake_ip_is_allowed_but_private_addresses_stay_blocked(self):
+        check = EDITOR["is_public_host"]
+        globals_ = check.__globals__
+        fake_dns = [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("198.18.0.201", 80))]
+        with patch.object(globals_["socket"], "getaddrinfo", return_value=fake_dns), \
+                patch.dict(globals_, {"getproxies": lambda: {"http": "proxy configured"}}):
+            self.assertTrue(check("websiteanthony.oss-cn-beijing.aliyuncs.com"))
+            self.assertFalse(check("127.0.0.1"))
+        with patch.object(globals_["socket"], "getaddrinfo", return_value=fake_dns), \
+                patch.dict(globals_, {"getproxies": lambda: {}}):
+            self.assertFalse(check("websiteanthony.oss-cn-beijing.aliyuncs.com"))
+
     def test_http_oss_image_is_imported_as_local_upload(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)

@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 import time
 from urllib.parse import parse_qs, urlsplit
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import HTTPRedirectHandler, Request, build_opener, getproxies
 import webbrowser
 
 from scripts.new_life import IMAGE_EXTENSIONS, MAX_IMAGE_BYTES, ROOT, write_entry
@@ -27,6 +27,7 @@ IMAGE_TYPES = {
     "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
     "image/gif": ".gif", "image/avif": ".avif",
 }
+PROXY_FAKE_IP_RANGE = ipaddress.ip_network("198.18.0.0/15")
 
 
 class NoRedirects(HTTPRedirectHandler):
@@ -47,8 +48,20 @@ def store_upload(content, name):
 
 
 def is_public_host(hostname):
+    try:
+        # A literal private address must stay blocked even when a proxy is configured.
+        if not ipaddress.ip_address(hostname).is_global:
+            return False
+    except ValueError:
+        pass
     addresses = socket.getaddrinfo(hostname, 80, type=socket.SOCK_STREAM)
-    return bool(addresses) and all(ipaddress.ip_address(item[4][0]).is_global for item in addresses)
+    proxy = getproxies()
+    has_http_proxy = bool(proxy.get("http") or proxy.get("all"))
+    return bool(addresses) and all(
+        ipaddress.ip_address(item[4][0]).is_global
+        or (has_http_proxy and ipaddress.ip_address(item[4][0]) in PROXY_FAKE_IP_RANGE)
+        for item in addresses
+    )
 
 
 def import_http_photo(source):
