@@ -24,7 +24,10 @@
   {% if hasCalculatorFields %}<link rel="stylesheet" href="/assets/css/calculator-fields.css">{% endif %}
   {% if hasLightbox %}<link rel="stylesheet" href="/assets/css/lightbox.css">{% endif %}
   {% if hasHighlight %}<link rel="stylesheet" href="/highlight/styles/monokai.min.css"><script defer src="/highlight/highlight.min.js"></script>{% endif %}
-  {% if hasMath %}<script defer src="https://cdn.bootcss.com/mathjax/3.0.5/es5/tex-mml-chtml.js"></script>{% endif %}
+  {% if hasMath %}
+  <script>window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], processEscapes: true } };</script>
+  <script defer src="https://cdn.bootcss.com/mathjax/3.0.5/es5/tex-mml-chtml.js"></script>
+  {% endif %}
   <script defer src="/assets/js/analytics.js"></script>
   {% if hasLightbox %}<script defer src="/assets/js/lightbox.js"></script>{% endif %}
 </head>
