@@ -1,115 +1,96 @@
+# 赵荣力的个人网站
 
-# 自己的个人网站
-一开始写这个网站的时候纯纯小白，用纯用html，css和js来手搓了这些网页，没想到后来维护着这么麻烦。由于慢慢增添了很多功能，很多插件，所以这里写一份文档来记录这些插件怎么用的，防止自己老年痴呆忘了。
-# 目录
-- [插件](#插件)
-    - [语法高亮使用](##语法高亮使用)
-    - [文件树](##文件树)
-    - [LaTex](##LaTex)
+个人介绍、文章、生活记录、工具资源和两个科研计算器。网站由 Eleventy 生成静态 HTML，计算器与图片预览使用原生 JavaScript，发布到 GitHub Pages。
 
+**网站地址：** [www.rlzhao.com](https://www.rlzhao.com/)
 
+## 本地开发
 
-
-
-
-
-
-
-
-
-
-# 插件
-## 语法高亮使用<br/>
-在head里嵌入语法高亮
-
-```html
-        <link rel="stylesheet" type="text/css" href="https://rlzhao.com/highlight/styles/monokai.min.css">
-        <script src="https://rlzhao.com/highlight/highlight.min.js"></script>
-        <script>
-            hljs.highlightAll();
-        </script>
-```
-使用时例子
-```html
-        <pre>
-            <code class="language-python">
-                  print('Hello World!')
-            </code>
-        </pre> 
-```
-## 文件树<br/>
-
-```
-tree D:\github\personalpage1.github.io > tree.txt // 生成树
-```
-```
-        personalpage1.github.io
-        ├─assets
-        │  ├─css
-        │  │  ├─stylesheet
-        │  │  └─templates
-        │  ├─images
-        │  │  ├─homepageicon
-        │  │  ├─icon
-        │  │  ├─tl
-        │  │  └─weixin
-        │  └─js
-        ├─highlight
-        │  ├─es
-        │  │  └─languages
-        │  ├─languages
-        │  └─styles
-        │      └─base16
-        └─media
-            └─pages
-                ├─articles
-                │  ├─20210920
-                │  │  └─qingyanguzhen
-                │  ├─20211128
-                │  │  └─huaximifen
-                │  ├─20220430
-                │  │  └─qianlingshan
-                │  ├─20220810
-                │  │  └─buildblog
-                │  ├─20230207
-                │  ├─20230429
-                │  └─20230503
-                ├─tools
-                └─work
-                    └─work
-
-```
-
-## LaTex<br/>
-引入MathJax插件
-
-```html
-        <!-- latex -->
-        <script src="https://cdn.bootcss.com/mathjax/3.0.5/es5/tex-mml-chtml.js"></script>
-```
-使用时直接使用LaTex语法即可
-
-## 访问统计
-
-业务页面统一通过 `/assets/js/analytics.js` 加载百度统计、51.la 和 Google Analytics；`verification.html` 不加载统计。三个服务目前都保留，外部脚本异步加载。
-
-统计脚本来源清单：
-
-- `https://hm.baidu.com`
-- `https://sdk.51.la`
-- `https://www.googletagmanager.com`
-
-部署内容安全策略时，`script-src` 需要考虑这些来源及本站自身脚本。统计服务还可能向其他域名发送请求；设置 `connect-src`、`img-src` 前应在实际部署环境检查网络请求。站内其他页面脚本也需要单独核对。
-
-## 发布前检查
-
-在仓库根目录运行：
+使用 Node.js 24（见 `.nvmrc`）和 Python。首次安装及预览：
 
 ```bash
-python tests/check_links.py
-python -m pip install playwright==1.62.0
-python -m playwright install chromium
-python tests/browser_smoke.py
+npm ci
+npm run dev
 ```
 
-链接检查覆盖 HTML 中引用的站内页面、静态资源和页内锚点，并按文件名大小写精确检查；浏览器检查覆盖首页、文章跳转、生活记录图片预览以及两个计算器的正常样例和错误输入。GitHub Actions 在 `main` 推送和拉取请求时执行相同检查。如需阻止检查未通过的代码直接进入 `main`，还需在仓库设置中将 `Site checks / check` 设为必需状态检查。
+`npm run dev` 会启动本地预览服务。发布前运行：
+
+```bash
+npm run build
+python tests/check_links.py _site
+python tests/browser_smoke.py _site
+```
+
+浏览器检查需要 Playwright 和 Chromium；CI 使用 Python 3.12 与 Playwright 1.62.0。首次本地运行前安装：
+
+```bash
+python -m pip install playwright==1.62.0
+python -m playwright install chromium
+```
+
+`_site/` 是生成结果，不提交到 Git。所有页面改动应在源码中完成。`check_links.py` 校验生成结果中的站内页面、资源、页内锚点和文件名大小写；`browser_smoke.py` 校验主要页面、文章跳转、图片预览与两个计算器。两项检查都不验证外部网址或远程图片是否在线。
+
+## 源码位置
+
+| 路径 | 用途 |
+| --- | --- |
+| `src/_includes/layouts/base.njk` | 全站 HTML、meta、导航和页脚的入口 |
+| `src/_includes/partials/` | 导航、页脚与生活记录展示 |
+| `src/pages/` | 首页、文章列表、生活记录列表、关于和工具页 |
+| `src/articles/` | 旧文章；保留原有 URL，新文章也可放在这里 |
+| `src/life/` | 每篇一文件的生活记录 |
+| `src/legacy/work/` | 保留原 URL 的 15 个历史生活记录分页 |
+| `src/calculators/` | 两个计算器页面与公式 |
+| `assets/`、`highlight/`、`media/` | 静态样式、脚本和图片；构建时复制到输出目录 |
+| `eleventy.config.js` | 静态文件复制、日期格式等少量构建配置 |
+
+### 新增文章
+
+在 `src/articles/` 新建 Markdown 文件。文件开头包含以下元信息，正文接在第二个 `---` 后；文章列表会自动更新：
+
+```yaml
+---
+layout: layouts/base.njk
+permalink: /articles/example/
+title: 示例文章｜赵荣力
+description: 页面描述和分享摘要。
+cardTitle: 示例文章
+summary: 列表中的一句介绍。
+category: 编程
+cover: /assets/images/example.jpg
+date: 2026-09-26
+tags: [article]
+activeNav: articles
+isArticle: true
+---
+```
+
+`permalink` 一经发布应保持稳定。旧文章继续输出原有 `/media/pages/articles/.../*.html` 地址。文章有可放大的图片时，在图片上加 `data-lightbox`，并在元信息中加 `hasLightbox: true`；代码高亮只在需要时加 `hasHighlight: true`。
+
+### 新增生活记录
+
+在 `src/life/` 新建 Markdown 文件。`date` 决定列表顺序，`photos` 是可选图片列表；新记录自动出现在 `work.html`，满 10 条后生成下一页。每条记录也有稳定的独立地址。
+
+```yaml
+---
+layout: layouts/life.njk
+permalink: /life/2026-09-26-example/
+title: 今天的记录
+description: 一句话简介。
+date: 2026-09-26
+tags: [life]
+photos:
+  - src: /assets/images/example.jpg
+    alt: 描述图片内容
+---
+```
+
+历史 `work1.html` 至 `work15.html` 保留原地址和内容。新记录不需要改这些历史页。
+
+## 发布
+
+`.github/workflows/site-check.yml` 在拉取请求中构建并检查；在 `main` 分支上检查通过后，上传 `_site/` 并部署到 GitHub Pages。首次切换时，需在仓库的 **Settings → Pages → Build and deployment** 中选择 **GitHub Actions**，并确认自定义域名设置仍为预期值。自定义 Actions 发布不依赖仓库根目录的 `CNAME` 文件；此文件保留用于原有发布方式的回退。切换前应先核对生成的旧页面 URL 和线上域名。
+
+业务页面目前仍通过 `assets/js/analytics.js` 加载百度统计、51.la 和 Google Analytics；`verification.html` 不加载统计。外部图片、MathJax 和统计脚本的可用性不在离线检查范围内。
+
+仓库根目录没有单独的项目许可证；`highlight/` 保留了第三方资源的许可证。

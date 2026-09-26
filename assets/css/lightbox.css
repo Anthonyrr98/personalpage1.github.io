@@ -1,5 +1,7 @@
 img[data-lightbox] {
   cursor: zoom-in;
+  max-width: 100%;
+  height: auto;
 }
 
 img[data-lightbox]:focus-visible {

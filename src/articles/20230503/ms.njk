@@ -1,0 +1,73 @@
+---
+layout: "layouts/base.njk"
+permalink: "/media/pages/articles/20230503/ms.html"
+title: "Materials Studio 在 Slurm 上提交任务｜赵荣力"
+description: "介绍如何在 Slurm 系统上提交 Materials Studio 计算任务。"
+activeNav: "articles"
+isArticle: true
+tags: ["article"]
+date: "2023-05-03"
+hasHighlight: true
+cardTitle: "Materials Studio在Slurm系统上提交教程"
+summary: "Materials Studio Slurm脚本"
+category: "编程"
+dateLabel: "2023年5月3日"
+cover: "https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230503/ms.png"
+---
+<div class="main-content">
+
+  <div class="as">
+
+  <main>
+  <article>
+   <header>
+
+    <p class="as-date" itemprop="datePublished">2023年5月3日<span>/</span> <a href="ms.html">
+      编程</a></p>
+
+    <h1 class="as-title">Materials Studio在Slurm系统上提交教程<span class="as-rating" style="--rating: 4.8;" aria-label="Rated 5 out of 5"></span></h1>
+  </header>
+
+    <p class="as-subtitle">在Slurm系统上提交Materials Studio任务</p>
+
+    <i class="as-subtitle">所有代码仅供参考
+
+
+    <h2>提交代码如下</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230503/sub.sh">sub.sh</a></h3>
+    <pre><code class="language-bash">
+      #!/bin/bash
+
+
+      #SBATCH --job-name=***
+      #SBATCH -p part*
+      #SBATCH -n 50
+
+
+      cd /home/**** #任务提交位置
+      cat /proc/cpuinfo > cpuinfo.log
+      export PATH=/home/dftuser/BIOVIA/MaterialsStudio20.1/etc/CASTEP/bin/:$PATH #Materials Studio CASTEP的PATH位置
+      RunCASTEP.sh -np 50 GBP
+
+    </code></pre>
+
+    <h3>把sub.sh放入提交目录文件夹</h3>
+    <pre><code class="language-python">
+     sbatch sub.sh #提交任务
+    </code></pre>
+
+    <h3>查看任务的两种方式</h3>
+    <pre><code class="language-python">
+      scontrol show job ID  #方式1
+      squeue #方式1
+    </code></pre>
+
+  </div></aside>
+
+    </article>
+  </main>
+</div>
+
+  </div>
+
+<!-- 底栏-->

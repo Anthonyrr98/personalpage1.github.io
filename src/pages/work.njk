@@ -1,0 +1,25 @@
+---
+layout: layouts/base.njk
+permalink: "{% if pagination.pageNumber == 0 %}/work.html{% else %}/work/page/{{ pagination.pageNumber + 1 }}/index.html{% endif %}"
+title: 生活记录｜赵荣力
+description: 赵荣力的生活记录，分享旅行、日常与和家人朋友相处的时光。
+activeNav: work
+hasLightbox: true
+pagination:
+  data: collections.life
+  size: 10
+  reverse: true
+---
+<div class="main-content">
+  <header>
+    <h1 class="extra-title">这大概就是我的生活吧</h1>
+    <p class="stream-intro"><em>think more</em></p>
+  </header>
+  {% for entry in pagination.items %}
+    {% include "partials/life-entry.njk" %}
+  {% endfor %}
+  <nav class="pagination" aria-label="生活记录分页">
+    {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">← 最新记录</a>{% endif %}
+    {% if pagination.href.next %}<a href="{{ pagination.href.next }}">更早的记录 →</a>{% else %}<a href="/media/pages/work/work/work15.html">查看 2021–2024 年记录 →</a>{% endif %}
+  </nav>
+</div>

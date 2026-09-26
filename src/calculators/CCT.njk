@@ -1,0 +1,83 @@
+---
+layout: "layouts/base.njk"
+permalink: "/media/pages/tools/CCT.html"
+title: "相关色温计算器｜赵荣力"
+description: "输入色坐标，估算相关色温并查看计算说明。"
+activeNav: "tools"
+hasMath: true
+---
+<div class="main-content">
+
+
+<h1 align="center" class="page-title">相关色温的计算(Correlated Colour Temperature)</h1></header>
+	<p align="center"><label for="a">input X</label> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<input type="text" inputmode="decimal" id="a" oninput="sum();" /></p>
+	<p align="center"><label for="b">input Y</label> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<input type="text" inputmode="decimal" id="b" oninput="sum();" /></p>
+	<p align="center"><label for="c">output n</label> &nbsp&nbsp&nbsp&nbsp&nbsp<input type="text" id="c" readonly /></p>
+	<p align="center"><label for="z">output CCT</label> <input type="text" id="z" readonly /></p>
+	<p align="center" id="calculation-error" role="status" aria-live="polite"></p>
+
+    <p class="streamitem-stamp">
+      <span class="streamitem-date" ><b>参考公式：</b></span>
+    </p>
+
+
+  $$C C T = - 437 n ^ { 3 } + 3601 n ^ { 2 } - 6861 n + 5514.31$$
+
+  $$n = ( x - x _ { e } ) / ( y - y _ { e } )$$
+
+  $$x _ { e } = 0.3320 , y _ { e } = 0.186$$
+
+  <p class="streamitem-stamp">
+    <span class="streamitem-date" ><b>参考文献：</b></span>
+  </p>
+
+<a href="https://doi.org/10.1016/j.ceramint.2023.05.126">  Zhao, Rongli, et al. Thermally-stable novel NaBaBi<sub>2</sub>(PO<sub>4</sub>)<sub>3</sub>: Sm<sup>3+</sup>/Dy<sup>3+</sup> white phosphors with tunable photoluminescence. Ceramics International, 49.15 (2023): 25795-25805.</a>
+
+<script type="text/javascript">
+  function sum() {
+    const xInput = document.getElementById("a");
+    const yInput = document.getElementById("b");
+    const nOutput = document.getElementById("c");
+    const cctOutput = document.getElementById("z");
+    const error = document.getElementById("calculation-error");
+
+    nOutput.value = "";
+    cctOutput.value = "";
+    error.textContent = "";
+
+    const rawX = xInput.value.trim();
+    const rawY = yInput.value.trim();
+    if (!rawX && !rawY) {
+      return;
+    }
+    if (!rawX || !rawY) {
+      error.textContent = "请同时输入 X 和 Y。";
+      return;
+    }
+
+    const x = Number(rawX);
+    const y = Number(rawY);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      error.textContent = "请输入有效的 X 和 Y 数值。";
+      return;
+    }
+    if (x < 0 || x > 1 || y <= 0 || y > 1 || x + y > 1) {
+      error.textContent = "色度坐标需满足 0 ≤ X ≤ 1、0 < Y ≤ 1 且 X + Y ≤ 1。";
+      return;
+    }
+    if (y === 0.186) {
+      error.textContent = "Y 不能等于 0.186（公式分母为零）。";
+      return;
+    }
+
+    const n = (x - 0.332) / (y - 0.186);
+    const cct = -437 * n ** 3 + 3601 * n ** 2 - 6861 * n + 5514.31;
+    if (!Number.isFinite(n) || !Number.isFinite(cct) || cct <= 0) {
+      error.textContent = "当前坐标无法得到有效的正色温。";
+      return;
+    }
+
+    nOutput.value = n;
+    cctOutput.value = cct;
+  }
+  </script>

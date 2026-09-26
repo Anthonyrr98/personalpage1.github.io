@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ description }}">
+  <link rel="canonical" href="{{ site.url }}{{ page.url }}">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:type" content="{% if isArticle %}article{% else %}website{% endif %}">
+  <meta property="og:url" content="{{ site.url }}{{ page.url }}">
+  <meta property="og:site_name" content="{{ site.name }}">
+  <meta property="og:description" content="{{ description }}">
+  {% if cover %}
+  <meta property="og:image" content="{% if cover[0] == '/' %}{{ site.url }}{% endif %}{{ cover }}">
+  {% else %}
+  <meta property="og:image" content="{{ site.url }}/assets/images/icon/homepage.JPG">
+  {% endif %}
+  <link rel="apple-touch-icon-precomposed" href="/assets/images/icon/152x152.JPG">
+  <link rel="icon" type="image/png" href="/assets/images/icon/194x194.png" sizes="194x194">
+  <link rel="icon" type="image/png" href="/assets/images/icon/32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="/assets/images/icon/16x16.png" sizes="16x16">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  {% if hasCalculatorFields %}<link rel="stylesheet" href="/assets/css/calculator-fields.css">{% endif %}
+  {% if hasLightbox %}<link rel="stylesheet" href="/assets/css/lightbox.css">{% endif %}
+  {% if hasHighlight %}<link rel="stylesheet" href="/highlight/styles/monokai.min.css"><script defer src="/highlight/highlight.min.js"></script>{% endif %}
+  {% if hasMath %}<script defer src="https://cdn.bootcss.com/mathjax/3.0.5/es5/tex-mml-chtml.js"></script>{% endif %}
+  <script defer src="/assets/js/analytics.js"></script>
+  {% if hasLightbox %}<script defer src="/assets/js/lightbox.js"></script>{% endif %}
+</head>
+<body>
+  {% include "partials/nav.njk" %}
+  {{ content | safe }}
+  {% include "partials/footer.njk" %}
+  {% if hasHighlight %}<script>window.addEventListener('load', function () { if (window.hljs) window.hljs.highlightAll(); });</script>{% endif %}
+</body>
+</html>

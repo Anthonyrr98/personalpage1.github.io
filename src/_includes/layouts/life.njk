@@ -1,0 +1,20 @@
+---
+layout: layouts/base.njk
+activeNav: work
+hasLightbox: true
+---
+<div class="main-content">
+  <article class="stream-lr">
+    <header>
+      <p class="streamitem-stamp"><time class="streamitem-date" datetime="{{ date | isoDate }}">{{ date | formatDate }}</time></p>
+      <h1 class="streamitem-title">{{ title }}</h1>
+    </header>
+    <div class="stream-main">
+      {{ content | safe }}
+      {% for photo in photos %}
+      <figure class="stream"><img src="{{ photo.src }}" alt="{{ photo.alt }}" loading="lazy" data-lightbox width="70%"></figure>
+      {% endfor %}
+    </div>
+    <p><a href="/work.html">返回日常生活</a></p>
+  </article>
+</div>

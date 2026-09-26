@@ -7,7 +7,7 @@ import posixpath
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parents[1]
 SITE_HOSTS = {"rlzhao.com", "www.rlzhao.com"}
 
 
@@ -77,6 +77,8 @@ def local_target(page, url):
     if route == "/":
         route = "/index.html"
     target = ROOT / route.lstrip("/")
+    if target.is_dir():
+        target /= "index.html"
     if not target.is_file() and not target.suffix:
         target = target.with_suffix(".html")
     return target, unquote(parsed.fragment)

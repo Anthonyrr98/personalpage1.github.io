@@ -1,0 +1,193 @@
+---
+layout: "layouts/base.njk"
+permalink: "/media/pages/articles/20230429/vaspintro.html"
+title: "VASP 实用教程与代码注释｜赵荣力"
+description: "整理 VASP 常用设置、代码注释和提交脚本。"
+activeNav: "articles"
+isArticle: true
+tags: ["article"]
+date: "2023-04-29"
+hasHighlight: true
+cardTitle: "实用教程以及一些代码注释"
+summary: "Vasp使用教程"
+category: "编程"
+dateLabel: "2023年4月29日"
+cover: "https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/logo.jpg"
+---
+<div class="main-content">
+
+  <div class="as">
+
+  <main>
+  <article>
+   <header>
+
+    <p class="as-date" itemprop="datePublished">2023年4月29日<span>/</span> <a href="vaspintro.html">
+      编程</a></p>
+
+    <h1 class="as-title">Vasp实用教程以及一些代码注释<span class="as-rating" style="--rating: 4.8;" aria-label="Rated 5 out of 5"></span></h1>
+  </header>
+
+    <p class="as-subtitle">展示一些最近用的vasp代码，包含INCAR,(POSCAR,POTCAR,KPOINTS)由vaspkit生成</p>
+
+    <i class="as-subtitle">所有代码仅供参考，目前在我的结构上能完美运行
+
+
+    <h2>第一步弛豫过程</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_cy">INCAR</a></h3>
+    <pre><code class="language-bash">
+      Global Parameters
+      ISTART =  0            (Read existing wavefunction; if there)
+      ISPIN  =  1            (Non-Spin polarised DFT)
+      # ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+      LREAL  = AUTO       (Projection operators: automatic)
+      ENCUT  =  500        (Cut-off energy for plane wave basis set, in eV)
+      PREC   =  Accurate       (Precision level)
+      LWAVE  = .FALSE.        (Write WAVECAR or not)
+      LCHARG = .FALSE.        (Write CHGCAR or not)
+      ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+      # LVTOT  = .TRUE.      (Write total electrostatic potential into LOCPOT or not)
+      # LVHAR  = .TRUE.      (Write ionic + Hartree electrostatic potential into LOCPOT or not)
+      # NELECT =             (No. of electrons: charged cells; be careful)
+      # LPLANE = .TRUE.      (Real space distribution; supercells)
+      # NPAR   = 4           (Max is no. nodes; don't set for hybrids)
+      # Nwrite = 2           (Medium-level output)
+      # KPAR   = 2           (Divides k-grid into separate groups)
+      #NGX    = 500         (FFT grid mesh density for nice charge/potential plots)
+      #NGY    = 500         (FFT grid mesh density for nice charge/potential plots)
+      #NGZ    = 500         (FFT grid mesh density for nice charge/potential plots)
+      NCORE = 4
+
+
+      Lattice Relaxation
+      NSW    =  300          (number of ionic steps)
+      ISMEAR =  0            (gaussian smearing method )
+      SIGMA  =  0.05         (please check the width of the smearing)
+      IBRION =  2            (Algorithm: 0-MD; 1-Quasi-New; 2-CG)
+      ISIF   =  2        (optimize atomic coordinates and lattice parameters)
+      EDIFFG = -0.01      (Ionic convergence; eV/AA)
+      EDIFF  =  1E-06        (SCF energy convergence; in eV)
+      PREC   =  Normal     (Precision level)
+      ISYM = 0
+
+      DFT-D3 Correction
+      IVDW   =  11           (DFT-D3 method of method with no damping)
+
+    </code></pre>
+
+    <h2>第二步电子自洽</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_zq">INCAR</a></h3>
+    <pre><code class="language-python">
+      Global Parameters
+      ISTART =  1            (Read existing wavefunction; if there)
+      ISPIN  =  1            (Non-Spin polarised DFT)
+      # ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+      LREAL  = .FALSE.       (Projection operators: automatic)
+      ENCUT  =  500       (Cut-off energy for plane wave basis set, in eV)
+      PREC   =  Normal       (Precision level)
+      LWAVE  = .TRUE.        (Write WAVECAR or not)
+      LCHARG = .TRUE.        (Write CHGCAR or not)
+      ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+      # LVTOT  = .TRUE.      (Write total electrostatic potential into LOCPOT or not)
+      # LVHAR  = .TRUE.      (Write ionic + Hartree electrostatic potential into LOCPOT or not)
+      # NELECT =             (No. of electrons: charged cells; be careful)
+      # LPLANE = .TRUE.      (Real space distribution; supercells)
+      # NPAR   = 4           (Max is no. nodes; don't set for hybrids)
+      # Nwrite = 2           (Medium-level output)
+      # KPAR   = 2           (Divides k-grid into separate groups)
+      # NGX    = 500         (FFT grid mesh density for nice charge/potential plots)
+      # NGY    = 500         (FFT grid mesh density for nice charge/potential plots)
+      # NGZ    = 500         (FFT grid mesh density for nice charge/potential plots)
+      NCORE = 8
+      IVDW =11
+
+      ISMEAR =  0            (gaussian smearing method)
+      SIGMA  =  0.05         (please check the width of the smearing)
+      NELM   =  200           (Max electronic SCF steps)
+      EDIFF  =  1E-06        (SCF energy convergence; in eV)
+      EDIFFG = -0.01
+      ISIF = 2
+      ISYM =0
+      IBRION =2
+    </code></pre>
+
+    <h2>第三步能带计算</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_band">INCAR</a></h3>
+    <pre><code class="language-python">
+      Global Parameters
+ISTART =  1            (Read existing wavefunction; if there)
+ISPIN  =  1            (Non-Spin polarised DFT)
+ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+LREAL  = .FALSE.       (Projection operators: automatic)
+ENCUT  =  500       (Cut-off energy for plane wave basis set, in eV)
+PREC   =  Normal       (Precision level)
+LWAVE  = .TRUE.        (Write WAVECAR or not)
+LCHARG = .TRUE.        (Write CHGCAR or not)
+ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+# LVTOT  = .TRUE.      (Write total electrostatic potential into LOCPOT or not)
+# LVHAR  = .TRUE.      (Write ionic + Hartree electrostatic potential into LOCPOT or not)
+# NELECT =             (No. of electrons: charged cells; be careful)
+# LPLANE = .TRUE.      (Real space distribution; supercells)
+# NPAR   = 4           (Max is no. nodes; don't set for hybrids)
+# Nwrite = 2           (Medium-level output)
+# KPAR   = 2           (Divides k-grid into separate groups)
+# NGX    = 500         (FFT grid mesh density for nice charge/potential plots)
+# NGY    = 500         (FFT grid mesh density for nice charge/potential plots)
+# NGZ    = 500         (FFT grid mesh density for nice charge/potential plots)
+NCORE = 8
+IVDW =11
+
+ISMEAR =  0            (gaussian smearing method)
+SIGMA  =  0.05         (please check the width of the smearing)
+NELM   =  200           (Max electronic SCF steps)
+EDIFF  =  1E-06        (SCF energy convergence; in eV)
+EDIFFG = -0.01
+ISIF = 2
+ISYM =0
+IBRION =2
+LORBIT = 11
+    </code></pre>
+
+    <h2>第四步态密度计算</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/INCAR_dos">INCAR</a></h3>
+    <pre><code class="language-python">
+      SYSTEM = 6-0
+      Global Parameters
+        ISTART =  1           (Read existing wavefunction; if there)
+        ISPIN  =  2
+        ICHARG =  11         (Non-self-consistent: GGA/LDA band structures)
+        LREAL  = .F.          (Projection operators: automatic)
+      PREC   =  Normal       (Precision level)
+        ADDGRID= .TRUE.        (Increase grid; helps GGA convergence)
+        NCORE = 8
+        ENCUT=500
+        NSW = 0
+        IBRION =  -1
+
+      Static Calculation
+        ISMEAR =  -5           (gaussian smearing method)
+        SIGMA  =  0.05         (please check the width of the smearing)
+        NELM   =  60           (Max electronic SCF steps)
+        EDIFF  =  1E-06        (SCF energy convergence; in eV)
+        ISYM   =  0
+        NBANDS =  256
+
+
+       LORBIT =  11           (PAW radii for projected DOS)
+       NEDOS  =  2001         (DOSCAR points)
+       EMIN   =  -30
+       EMAX   =  30           (DOS fanwei)
+    </code></pre>
+
+    <h2>提交脚本</h2>
+    <h3><a href="https://websiteanthony.oss-cn-beijing.aliyuncs.com/rlzhao/media/pages/articles/20230429/vaspintro/vasp.sh">vasp.sh</a></h3>
+
+  </div></aside>
+
+    </article>
+  </main>
+</div>
+
+  </div>
+
+<!-- 底栏-->

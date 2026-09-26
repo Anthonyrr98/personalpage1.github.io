@@ -1,0 +1,8 @@
+.calculator-fields { max-width: 38rem; }
+.calculator-fields p { display: flex; align-items: center; gap: 1rem; margin: 0.75rem 0; text-align: left; }
+.calculator-fields label { flex: 0 0 15rem; }
+.calculator-fields input { width: 12rem; max-width: 100%; }
+@media (max-width: 35rem) {
+  .calculator-fields p { display: block; }
+  .calculator-fields label { display: block; margin-bottom: 0.25rem; }
+}
