@@ -1,0 +1,12 @@
+<article class="stream-lr">
+  <div class="stream-meta">
+    <p class="streamitem-stamp"><time class="streamitem-date" datetime="{{ entry.date | isoDate }}">{{ entry.date | formatDate }}</time></p>
+  </div>
+  <div class="stream-main">
+    <h2 class="streamitem-title"><a href="{{ entry.url }}">{{ entry.data.title }}</a></h2>
+    {{ entry.templateContent | safe }}
+    {% for photo in entry.data.photos %}
+    <figure class="stream"><img src="{{ photo.src }}" alt="{{ photo.alt }}" loading="lazy" data-lightbox width="70%"></figure>
+    {% endfor %}
+  </div>
+</article>

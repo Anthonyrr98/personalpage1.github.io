@@ -1,0 +1,16 @@
+<div class="main-content">
+  <nav aria-label="主导航">
+    <div class="logo">
+      <a href="/" rel="home" class="logo-item-link">{{ site.name }}</a>
+      <span class="logo-sub">{{ site.tagline }}</span>
+    </div>
+    <ul class="menu">
+      <li class="menu-item{% if activeNav == 'home' %} is-active{% endif %}"><a href="/" class="menu-item-link mil-Home"{% if activeNav == 'home' %} aria-current="page"{% endif %}>主页</a></li>
+      <li class="menu-item{% if activeNav == 'articles' %} is-active{% endif %}"><a href="/articles.html" class="menu-item-link mil-Articles"{% if activeNav == 'articles' %} aria-current="page"{% endif %}>文章</a></li>
+      <li class="menu-item{% if activeNav == 'work' %} is-active{% endif %}"><a href="/work.html" class="menu-item-link mil-Work"{% if activeNav == 'work' %} aria-current="page"{% endif %}>日常生活</a></li>
+      <li class="menu-item{% if activeNav == 'about' %} is-active{% endif %}"><a href="/about.html" class="menu-item-link mil-About"{% if activeNav == 'about' %} aria-current="page"{% endif %}>关于我</a></li>
+      <li class="menu-item"><a href="https://pic.rlzhao.com" class="menu-item-link mil-photo">平平无奇</a></li>
+      <li class="menu-item{% if activeNav == 'tools' %} is-active{% endif %}"><a href="/tools.html" class="menu-item-link mil-photo"{% if activeNav == 'tools' %} aria-current="page"{% endif %}>工具</a></li>
+    </ul>
+  </nav>
+</div>

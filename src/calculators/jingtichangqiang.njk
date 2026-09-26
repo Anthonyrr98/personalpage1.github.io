@@ -1,0 +1,124 @@
+---
+layout: "layouts/base.njk"
+permalink: "/media/pages/tools/jingtichangqiang.html"
+title: "晶体场强计算器｜赵荣力"
+description: "根据光谱峰位计算晶体场强与相关参数，并查看公式说明。"
+activeNav: "tools"
+hasMath: true
+hasCalculatorFields: true
+---
+<div class="main-content">
+
+
+<h1 align="center" class="page-title">晶体场强的计算</h1></header>
+
+  <p>请输入同一种 d<sup>3</sup> 离子的谱峰波长，单位均为 nm：T2、T1 为激发峰，2E 为发射峰；T1 波长应短于 T2。</p>
+  <div class="calculator-fields">
+  <p align="left"><label for="a">T2 激发峰 (nm)</label><input type="text" inputmode="decimal" id="a" oninput="sum();" /></p>
+  <p align="left"><label for="b">T1 激发峰 (nm)</label><input type="text" inputmode="decimal" id="b" oninput="sum();" /></p>
+  <p align="left"><label for="c">2E 发射峰 (nm)</label><input type="text" inputmode="decimal" id="c" oninput="sum();" /></p>
+
+  <p align="right"><label for="xx">x (无量纲)</label><input type="text" id="xx" readonly /></p>
+  <p align="right"><label for="d">Dq (cm⁻¹)</label><input type="text" id="d" readonly /></p>
+  <p align="right"><label for="B">B (cm⁻¹)</label><input type="text" id="B" readonly /></p>
+  <p align="right"><label for="DqB">Dq/B (无量纲)</label><input type="text" id="DqB" readonly /></p>
+  <p align="right"><label for="C">C (cm⁻¹)</label><input type="text" id="C" readonly /></p>
+  <p align="right"><label for="E1">β:Mn<sup>4+</sup> (无量纲)</label> <input type="text" id="E1" readonly /></p>
+  <p align="right"><label for="E2">β:Cr<sup>3+</sup> (无量纲)</label> <input type="text" id="E2" readonly /></p>
+  </div>
+  <p>适用范围：本页按 d<sup>3</sup> 离子的能级跃迁计算 B、C 和 β（如 Mn<sup>4+</sup>、Cr<sup>3+</sup>）。Fe<sup>3+</sup> 为 d<sup>5</sup>，不能直接使用这组输入和公式计算其 β。</p>
+  <p>换算关系：波数 E (cm⁻¹) = 10<sup>7</sup> / 波长 (nm)。两个 β 输出分别使用对应离子的自由离子参数：Mn<sup>4+</sup> 的 B₀ = 1160、C₀ = 4303；Cr<sup>3+</sup> 的 B₀ = 918、C₀ = 3850，单位均为 cm⁻¹。请只采用与输入谱峰所属离子对应的 β；结果是基于所选峰位的估算值。</p>
+  <p align="right" id="calculation-error" role="status" aria-live="polite"></p>
+
+    <p class="streamitem-stamp">
+      <span class="streamitem-date" ><b>参考公式：</b></span>
+    </p>
+
+
+    $$E\,(\mathrm{cm}^{-1}) = \frac{10^{7}}{\lambda\,(\mathrm{nm})}$$
+
+    $$D q = \frac { E ( ^ { 4 } T _ { 2 } - 4 A _ { 2 } ) } { 1 0 } $$
+
+    $$x = \frac { E ( ^ { 4 } A _ { 2 } - ^ { 4 }T _ { 1 } ) - E ( ^ { 4 }A _ { 2 } - ^ { 4 } T _ { 2 } ) } { D q } $$
+
+    $$\frac { D q } { B } = \frac { 1 5 ( x - 8 ) } { ( x ^ { 2 } - 1 0 x ) } $$
+
+    $$\frac { E ( ^ { 2 } E _ { g } \rightarrow ^ { 4 } A _ { 2 g } ) } { B } = \frac { 3 . 0 5 C } { B } - \frac { 1 . 8 B } { D q } + 7 . 9 $$
+
+    $$\beta _ { 1 } = \sqrt { ( \frac { B } { B _ { 0 } } ) ^ { 2 } + ( \frac { C } { C _ { 0 } } ) ^ { 2 } } $$
+
+  <p class="streamitem-stamp">
+    <span class="streamitem-date" ><b>参考文献：</b></span>
+  </p>
+
+[1]<a href="https://doi.org/10.1016/j.jallcom.2016.09.203">An efficient, broad-band red-emitting Li<sub>2</sub>MgTi<sub>3</sub>O<sub>8</sub>:Mn<sup>4+</sup> phosphor for blue-converted white LEDs</a>
+<br>
+[2]<a href="https://doi.org/10.1016/j.cej.2022.136839">Highly-efficient double perovskite Mn4+-activated Gd<sub>2</sub>ZnTiO<sub>6</sub> phosphors: A bifunctional optical sensing platform for luminescence thermometry and manometry</a>
+<br>
+[3]<a href="https://doi.org/10.1039/C8RA06134C">Novel SrMg<sub>2</sub>La<sub>2</sub>W<sub>2</sub>O<sub>12</sub>:Mn<sup>4+</sup> far-red phosphors with high quantum efficiency and thermal stability towards applications in indoor plant cultivation LEDs</a>（公式与 Mn<sup>4+</sup> 验算数据）
+<br>
+[4]<a href="https://doi.org/10.1016/j.optmat.2025.117020">Estimating the <sup>2</sup>E<sub>g</sub> energy state for Cr<sup>3+</sup> in solids by using the nephelauxetic function h<sub>e</sub></a>（Cr<sup>3+</sup> 自由离子参数）
+
+<script type="text/javascript">
+  function sum() {
+    const inputIds = ["a", "b", "c"];
+    const outputIds = ["xx", "d", "B", "DqB", "C", "E1", "E2"];
+    const error = document.getElementById("calculation-error");
+    const rawValues = inputIds.map(id => document.getElementById(id).value.trim());
+
+    outputIds.forEach(id => { document.getElementById(id).value = ""; });
+    error.textContent = "";
+
+    if (rawValues.every(value => value === "")) {
+      return;
+    }
+    if (rawValues.some(value => value === "")) {
+      error.textContent = "请填写 T2、T1 和 2E 三个输入值。";
+      return;
+    }
+
+    const [lambdaT2, lambdaT1, lambda2E] = rawValues.map(Number);
+    if (![lambdaT2, lambdaT1, lambda2E].every(value => Number.isFinite(value) && value > 0)) {
+      error.textContent = "T2、T1 和 2E 必须是大于零的有效波长（nm）。";
+      return;
+    }
+    if (lambdaT1 >= lambdaT2) {
+      error.textContent = "T1 激发峰的波长必须短于 T2 激发峰。";
+      return;
+    }
+
+    const energyT2 = 1e7 / lambdaT2;
+    const energyT1 = 1e7 / lambdaT1;
+    const energy2E = 1e7 / lambda2E;
+    const d = energyT2 / 10;
+    const x = (energyT1 - energyT2) / d;
+    if (!Number.isFinite(d) || !Number.isFinite(x) || d === 0 || x === 8) {
+      error.textContent = "当前输入使公式分母为零或结果无效。";
+      return;
+    }
+
+    const B = d * (x * x - 10 * x) / (15 * (x - 8));
+    if (!Number.isFinite(B) || B <= 0) {
+      error.textContent = "当前谱峰无法得到有效的正 B 值；请核对峰位与归属。";
+      return;
+    }
+
+    const DqB = d / B;
+    const C = (energy2E + 1.8 * B * B / d - 7.9 * B) / 3.05;
+    if (!Number.isFinite(C) || C <= 0) {
+      error.textContent = "当前谱峰无法得到有效的正 C 值；请核对峰位与归属。";
+      return;
+    }
+    const E1 = Math.hypot(B / 1160, C / 4303);
+    const E2 = Math.hypot(B / 918, C / 3850);
+    const results = { xx: x, d, B, DqB, C, E1, E2 };
+    if (!Object.values(results).every(Number.isFinite)) {
+      error.textContent = "计算结果超出有效数值范围。";
+      return;
+    }
+
+    Object.entries(results).forEach(([id, value]) => {
+      document.getElementById(id).value = value.toPrecision(6);
+    });
+  }
+  </script>

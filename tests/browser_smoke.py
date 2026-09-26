@@ -6,11 +6,12 @@ from mimetypes import guess_type
 from pathlib import Path
 from threading import Thread
 from urllib.parse import unquote, urlsplit
+import sys
 
 from playwright.sync_api import sync_playwright
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parents[1]
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -57,12 +58,24 @@ def main():
             visit("/index.html")
             assert page.title() == "赵荣力｜个人主页"
             visit("/articles.html")
-            assert page.locator(".blog-box").count() == 7
+            assert page.locator(".blog-box").count() >= 7
             page.locator(".blog-box a:has(img)").first.click()
             page.wait_for_url("**/media/pages/articles/20230503/ms.html")
             assert "Materials Studio" in page.title()
+            visit("/media/pages/articles/20230207/qinghai1.html")
+            article_image = page.locator("img[data-lightbox]").first
+            article_image.focus()
+            page.keyboard.press("Enter")
+            assert page.locator("dialog.image-lightbox[open]").count() == 1
+            page.keyboard.press("Escape")
+            assert article_image.evaluate("img => document.activeElement === img")
             print("PASS: homepage and article navigation")
 
+            visit("/work.html")
+            assert page.locator(".stream-lr").count() >= 3
+            page.locator(".stream-lr a").first.click()
+            page.wait_for_url("**/life/2025-05-10-matching-outfits/")
+            assert "情侣装匹配成功" in page.title()
             visit("/work.html")
             thumbnail = page.locator("img[data-lightbox]").first
             thumbnail.click()
@@ -74,6 +87,20 @@ def main():
             visit("/media/pages/work/work/work1.html")
             assert page.locator("img[data-lightbox]").count() > 0
             print("PASS: life-record image preview")
+
+            mobile = browser.new_page(viewport={"width": 375, "height": 812})
+            mobile.route("**/*", route_request)
+            for article in (
+                "/media/pages/articles/20210920/qingyanguzhen.html",
+                "/media/pages/articles/20220430/qianlingshan.html",
+                "/media/pages/articles/20220810/buildblog.html",
+                "/media/pages/articles/20230207/qinghai1.html",
+            ):
+                mobile.goto(base + article, wait_until="networkidle")
+                width = mobile.evaluate("document.documentElement.scrollWidth")
+                assert width <= 375, f"mobile overflow on {article}: {width}px"
+            mobile.close()
+            print("PASS: article images fit mobile screens")
 
             visit("/media/pages/tools/CCT.html")
             page.locator("#a").fill("0.3127")

@@ -1,0 +1,15 @@
+{
+  "name": "rlzhao-personal-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "eleventy --serve",
+    "build": "eleventy"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.6"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  }
+}
