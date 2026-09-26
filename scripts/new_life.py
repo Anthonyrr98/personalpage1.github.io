@@ -30,10 +30,7 @@ def yaml_string(value):
     return json.dumps(value, ensure_ascii=False)
 
 
-def prepare(draft_path):
-    with draft_path.open("rb") as file:
-        data = tomllib.load(file)
-
+def prepare_data(data, photo_base):
     title = required_text(data, "title")
     day = required_text(data, "date")
     try:
@@ -86,7 +83,7 @@ def prepare(draft_path):
                 raise ValueError(f"第 {number} 张照片的链接格式不支持")
             local = Path(source).expanduser()
             if not local.is_absolute():
-                local = draft_path.parent / local
+                local = photo_base / local
             local = local.resolve()
             if not local.is_file():
                 raise ValueError(f"找不到第 {number} 张本地照片：{local}")
@@ -119,8 +116,8 @@ def prepare(draft_path):
     return output, copies, "\n".join(lines), f"/life/{name}/"
 
 
-def create(draft_path):
-    output, copies, markdown, url = prepare(draft_path)
+def write_entry(data, photo_base):
+    output, copies, markdown, url = prepare_data(data, photo_base)
     created = []
     try:
         for source, destination in copies:
@@ -137,8 +134,16 @@ def create(draft_path):
             path.unlink(missing_ok=True)
         raise
 
+    return output, [destination for _, destination in copies], url
+
+
+def create(draft_path):
+    with draft_path.open("rb") as file:
+        data = tomllib.load(file)
+    output, images, url = write_entry(data, draft_path.parent)
+
     print(f"已生成：{output.relative_to(ROOT)}")
-    for _, destination in copies:
+    for destination in images:
         print(f"已复制照片：{destination.relative_to(ROOT)}")
     print(f"发布后地址：{url}")
     print("检查生成内容后，提交并推送到 main，GitHub Actions 会自动发布。")
