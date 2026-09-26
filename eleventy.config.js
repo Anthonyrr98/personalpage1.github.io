@@ -1,4 +1,7 @@
+import footnote from "markdown-it-footnote";
+
 export default function (eleventyConfig) {
+  eleventyConfig.amendLibrary("md", (markdown) => markdown.use(footnote));
   eleventyConfig.addFilter("formatDate", (value) => {
     const date = new Date(value);
     return `${date.getUTCFullYear()}年${date.getUTCMonth() + 1}月${date.getUTCDate()}日`;

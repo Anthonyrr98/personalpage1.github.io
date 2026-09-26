@@ -73,12 +73,15 @@ def main():
 
             visit("/work.html")
             assert page.locator(".stream-lr").count() >= 3
-            page.locator(".stream-lr a").first.click()
+            page.locator('.stream-lr a[href="/life/2025-05-10-matching-outfits/"]').click()
             page.wait_for_url("**/life/2025-05-10-matching-outfits/")
             assert "情侣装匹配成功" in page.title()
             visit("/work.html")
-            thumbnail = page.locator("img[data-lightbox]").first
-            thumbnail.click()
+            thumbnail = page.locator('.stream-lr').filter(
+                has=page.locator('a[href="/life/2025-05-10-matching-outfits/"]')
+            ).locator("img[data-lightbox]").first
+            thumbnail.focus()
+            page.keyboard.press("Enter")
             assert page.locator("dialog.image-lightbox[open]").count() == 1
             assert page.locator("dialog.image-lightbox img").get_attribute("alt") == thumbnail.get_attribute("alt")
             page.keyboard.press("Escape")
