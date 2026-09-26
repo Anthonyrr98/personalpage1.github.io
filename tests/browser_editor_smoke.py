@@ -23,7 +23,7 @@ with TemporaryDirectory() as directory:
     root = Path(directory)
     legacy = root / "src/legacy/work/work1.njk"
     legacy.parent.mkdir(parents=True)
-    legacy.write_text('---\nlayout: layouts/base.njk\n---\n<div class="stream-lr"><div class="stream-meta"><span class="streamitem-date">2024<span>年</span> <a href="">1月2号</a></span></div><div class="stream-main"><h3 class="streamitem-title">旧记录</h3></div></div>', encoding="utf-8")
+    legacy.write_text('---\nlayout: layouts/base.njk\n---\n<div class="stream-lr"><div class="stream-meta"><span class="streamitem-date">2024<span>年</span> <a href="">1月2号</a></span></div><div class="stream-main"><h3 class="streamitem-title">旧记录</h3><p>原来的正文</p><figure class="stream"><img src="https://example.com/old.jpg" alt="旧照片"></figure></div></div>', encoding="utf-8")
     with patch.dict(server_globals, {
         "ROOT": root,
         "EDITOR": project / "editor",
@@ -74,13 +74,30 @@ with TemporaryDirectory() as directory:
                 card = page.locator(".entry-card", has_text="旧记录")
                 card.get_by_role("button", name="编辑").click()
                 expect(page.locator("#legacy-editor")).to_be_visible()
-                page.locator("#legacy-html").fill(page.locator("#legacy-html").input_value().replace("旧记录", "旧记录已改"))
+                expect(page.locator("#title")).to_have_value("旧记录")
+                expect(page.locator("#body")).to_have_value("原来的正文")
+                expect(page.locator(".photo-card")).to_have_count(1)
+                page.locator("#title").fill("旧记录已改")
+                page.locator("#description").fill("一句简介")
+                page.locator("#body").fill("更新后的正文")
+                page.locator(".photo-alt").fill("更新后的照片说明")
+                page.locator("#oss-url").fill("https://example.com/new.jpg")
+                page.locator("#add-oss").click()
+                expect(page.locator(".photo-card")).to_have_count(2)
                 page.once("dialog", lambda dialog: dialog.dismiss())
                 page.locator("#view-publish").click()
                 expect(page.locator("#view-manage")).to_have_attribute("aria-pressed", "true")
                 page.locator("#generate").click()
                 page.get_by_text("修改已保存到本地文件", exact=False).wait_for()
-                assert "旧记录已改" in legacy.read_text(encoding="utf-8")
+                expect(page.locator(".entry-card", has_text="旧记录已改").locator(".entry-excerpt")).to_have_text("一句简介")
+                saved = legacy.read_text(encoding="utf-8")
+                for value in ("旧记录已改", "一句简介", "更新后的正文", "更新后的照片说明", "https://example.com/old.jpg", "https://example.com/new.jpg"):
+                    assert value in saved, value
+                page.locator("#legacy-editor summary").click()
+                page.locator("#legacy-html").fill(page.locator("#legacy-html").input_value().replace("旧记录已改", "原始 HTML 已改"))
+                page.locator("#generate").click()
+                page.get_by_text("修改已保存到本地文件", exact=False).wait_for()
+                assert "原始 HTML 已改" in legacy.read_text(encoding="utf-8")
                 page.locator("#view-publish").click()
                 expect(page.locator("#view-publish")).to_have_attribute("aria-pressed", "true")
                 expect(page.locator("#manage-library")).to_be_hidden()

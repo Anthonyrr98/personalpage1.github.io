@@ -56,7 +56,9 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .entry-empty{margin:20px 0 0;color:var(--muted);font-size:12px;text-align:center}
 @media(max-width:900px){.entry-month-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.library{padding:23px 20px}.library-heading{align-items:flex-start;flex-direction:column}.library-heading h2{font-size:26px}.library-tools{align-items:stretch;flex-direction:column}.library-tools input[type=search]{width:100%}.library-filters{align-self:flex-start}}
-.legacy-editor { grid-column: 1; }
+.legacy-editor summary { cursor:pointer;color:var(--accent-dark);font-size:13px;font-weight:700; }
+.legacy-editor details[open] summary { margin-bottom:14px; }
+.legacy-editor .field-label { margin-top:20px; }
 .legacy-editor textarea { min-height: 440px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.55; }
 [hidden] { display: none !important; }
 .studio-nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:22px;min-height:66px;border-bottom:1px solid var(--line);background:rgba(245,241,233,.96);backdrop-filter:blur(12px)}

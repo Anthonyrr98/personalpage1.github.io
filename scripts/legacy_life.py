@@ -14,6 +14,7 @@ ENTRY_ID = re.compile(r"legacy-work(1[0-5]|[1-9])-(\d{1,2})\Z")
 START = re.compile(r'<div\s+class="stream-lr"\s*>', re.I)
 DIV = re.compile(r"<div\b[^>]*>|</div\s*>", re.I)
 TITLE = re.compile(r'(<h3\s+class="streamitem-title"[^>]*>)(.*?)(</h3>)', re.I | re.S)
+DESCRIPTION = re.compile(r'<p\s+class="life-editor-description"[^>]*>(.*?)</p>', re.I | re.S)
 DATE = re.compile(r'(<span\s+class="streamitem-date"[^>]*>)(.*?</a>\s*)(</span>)', re.I | re.S)
 IMAGE = re.compile(r'<img\b', re.I)
 HIDE_OPEN = "{# life-editor:hidden #}{% if false %}"
@@ -65,11 +66,14 @@ def parse(entry_id):
     prefix = text[:start]
     suffix = text[end:]
     hidden = prefix.endswith(HIDE_OPEN) and suffix.startswith(HIDE_CLOSE)
+    description = DESCRIPTION.search(html)
+    description_text = unescape(re.sub(r"<[^>]+>", "", description.group(1))).strip() if description else ""
+    photo_count = len(IMAGE.findall(html))
     return {
         "id": entry_id, "kind": "legacy", "version": sha256(text.encode("utf-8")).hexdigest(),
         "title": unescape(re.sub(r"<[^>]+>", "", title.group(2))).strip(),
         "date": day_value, "html": html.replace("\r\n", "\n"), "hidden": hidden,
-        "photos": len(IMAGE.findall(html)), "excerpt": "旧版记录 · HTML 内容",
+        "photos": photo_count, "excerpt": description_text or f"旧版分页 · {photo_count} 张照片",
         "url": f"/media/pages/work/work/work{number}.html", "_path": path,
         "_text": text, "_start": start, "_end": end,
     }

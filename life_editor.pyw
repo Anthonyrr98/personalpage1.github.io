@@ -6,7 +6,9 @@ import json
 import mimetypes
 import os
 from pathlib import Path
+import re
 import secrets
+import shutil
 import socket
 import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -171,6 +173,38 @@ def remove_used_uploads(photos):
             (DRAFT.parent / source).unlink(missing_ok=True)
 
 
+LEGACY_UPLOAD = re.compile(r'(\bsrc=")(?P<source>life-uploads/[a-f0-9]{24}\.(?:jpe?g|png|webp|gif|avif))(")', re.I)
+
+
+def materialize_legacy_uploads(html, entry_id):
+    """Copy newly added photos before writing a legacy HTML record."""
+    images = []
+    used = []
+    replacements = {}
+    def replace(match):
+        source = match.group("source")
+        if source not in replacements:
+            original = DRAFT.parent / source
+            if not original.is_file() or original.stat().st_size > MAX_IMAGE_BYTES:
+                raise ValueError("旧记录中的本地照片不存在或超过 20 MB")
+            destination = ROOT / "assets" / "images" / "life" / f"{entry_id}-{secrets.token_hex(6)}{original.suffix.lower()}"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(original, destination)
+            images.append(destination)
+            used.append(original)
+            replacements[source] = f"/assets/images/life/{destination.name}"
+        return match.group(1) + replacements[source] + match.group(3)
+    try:
+        updated = LEGACY_UPLOAD.sub(replace, html)
+        if "life-uploads/" in updated:
+            raise ValueError("旧记录中存在无法识别的本地照片地址")
+    except Exception:
+        for image in images:
+            image.unlink(missing_ok=True)
+        raise
+    return updated, images, used
+
+
 def change_existing(payload, action):
     if not isinstance(payload, dict):
         raise ValueError("请求格式不正确")
@@ -186,12 +220,23 @@ def change_existing(payload, action):
                 check_publish_ready()
             data = payload.get("data", {})
             html = data.get("html") if isinstance(data, dict) else None
-            path, changed = legacy_life.change(entry["id"], entry["version"], action, html)
+            images = []
+            used = []
+            if action == "save" and isinstance(html, str):
+                html, images, used = materialize_legacy_uploads(html, entry["id"])
+            try:
+                path, changed = legacy_life.change(entry["id"], entry["version"], action, html)
+            except Exception:
+                for image in images:
+                    image.unlink(missing_ok=True)
+                raise
             if publish and changed:
                 try:
-                    publish_paths([path], f"{action.capitalize()} legacy life entry: {entry['title']}")
+                    publish_paths([path, *images], f"{action.capitalize()} legacy life entry: {entry['title']}")
                 except RuntimeError as error:
                     raise RuntimeError(f"已在本地修改，但推送失败：{error}") from error
+            for upload in used:
+                upload.unlink(missing_ok=True)
             updated = None if action == "delete" else legacy_life.public(legacy_life.parse(entry["id"]))
             return {"deleted": action == "delete", "published": publish,
                     "unchanged": not changed, "entry": updated}

@@ -26,6 +26,8 @@ const viewManage = document.querySelector('#view-manage');
 let photos = [];
 let records = [];
 let currentRecord = null;
+let legacyOriginal = '';
+let legacyInitial = null;
 let editDirty = false;
 let recordFilter = 'all';
 let yearFilter = 'all';
@@ -48,7 +50,7 @@ async function api(path, options = {}) {
 }
 
 function getData() {
-  if (currentRecord?.kind === 'legacy') return { html: legacyHtml.value };
+  if (currentRecord?.kind === 'legacy') return { html: buildLegacyHtml() };
   return {
     title: fields.title.value.trim(),
     date: fields.date.value,
@@ -59,10 +61,115 @@ function getData() {
 }
 
 function setData(data) {
-  if (data.kind === 'legacy') { legacyHtml.value = data.html; return; }
+  if (data.kind === 'legacy') {
+    legacyOriginal = data.html;
+    legacyHtml.value = data.html;
+    const root = new DOMParser().parseFromString(data.html, 'text/html').querySelector('.stream-lr');
+    const main = root?.querySelector('.stream-main');
+    const title = main?.querySelector('h3.streamitem-title');
+    if (!main || !title) throw new Error('这条旧记录的结构无法用表单读取，请使用原始 HTML 编辑。');
+    fields.title.value = data.title;
+    fields.date.value = /^\d{4}-\d{2}-\d{2}$/.test(data.date) ? data.date : '';
+    fields.description.value = main.querySelector('.life-editor-description')?.textContent.trim() || '';
+    fields.body.value = legacyBodyNodes(main, title).map(node => node.textContent.trim()).filter(Boolean).join('\n\n');
+    photos = Array.from(main.querySelectorAll('img')).map((image, legacyIndex) => ({
+      source: image.getAttribute('src') || '', alt: image.getAttribute('alt') || '', legacyIndex,
+    }));
+    legacyInitial = legacySnapshot();
+    renderPhotos();
+    return;
+  }
+  legacyOriginal = '';
+  legacyInitial = null;
   for (const [key, input] of Object.entries(fields)) input.value = data[key] || '';
   photos = Array.isArray(data.photos) ? data.photos : [];
   renderPhotos();
+}
+
+function legacyBodyNodes(main, title) {
+  return Array.from(main.querySelectorAll('p, blockquote, h3.streamitem-title'))
+    .filter(node => node !== title && !node.classList.contains('life-editor-description') && !node.closest('figure'));
+}
+
+function legacySnapshot() {
+  return JSON.stringify({
+    title: fields.title.value.trim(), date: fields.date.value,
+    description: fields.description.value.trim(), body: fields.body.value.trim(),
+    photos: photos.map(({ source, alt, legacyIndex }) => ({ source, alt, legacyIndex })),
+  });
+}
+
+function buildLegacyHtml() {
+  if (legacyHtml.value !== legacyOriginal) return legacyHtml.value;
+  if (legacySnapshot() === legacyInitial) return legacyOriginal;
+  const root = new DOMParser().parseFromString(legacyOriginal, 'text/html').querySelector('.stream-lr');
+  const main = root.querySelector('.stream-main');
+  const title = main.querySelector('h3.streamitem-title');
+  const before = JSON.parse(legacyInitial);
+  const after = JSON.parse(legacySnapshot());
+  if (after.title !== before.title) title.textContent = after.title;
+  if (after.date !== before.date) {
+    const stamp = root.querySelector('.streamitem-date');
+    if (!stamp) throw new Error('旧记录的日期结构无法修改，请使用原始 HTML 编辑。');
+    const [year, month, day] = after.date.split('-').map(Number);
+    const ordinal = document.createElement('span');
+    ordinal.className = 'streamitem-ordinal';
+    ordinal.textContent = '年';
+    const link = document.createElement('a');
+    link.href = stamp.querySelector('a')?.getAttribute('href') || '';
+    link.textContent = `${month}月${day}号`;
+    stamp.replaceChildren(String(year), ordinal, ' ', link);
+  }
+  if (after.description !== before.description) {
+    let description = main.querySelector('.life-editor-description');
+    if (after.description) {
+      if (!description) {
+        description = document.createElement('p');
+        description.className = 'life-editor-description';
+        title.insertAdjacentElement('afterend', description);
+      }
+      description.textContent = after.description;
+    } else description?.remove();
+  }
+  if (after.body !== before.body) {
+    legacyBodyNodes(main, title).forEach(node => node.remove());
+    const anchor = main.querySelector('.life-editor-description') || title;
+    let position = anchor;
+    for (const paragraph of after.body.split(/\n\s*\n/).filter(Boolean)) {
+      const node = document.createElement('p');
+      paragraph.split('\n').forEach((line, index) => {
+        if (index) node.append(document.createElement('br'));
+        node.append(line);
+      });
+      position.insertAdjacentElement('afterend', node);
+      position = node;
+    }
+  }
+  if (JSON.stringify(after.photos) !== JSON.stringify(before.photos)) {
+    const originals = Array.from(main.querySelectorAll('img'));
+    const kept = new Map(photos.filter(photo => Number.isInteger(photo.legacyIndex))
+      .map(photo => [photo.legacyIndex, photo]));
+    originals.forEach((image, index) => {
+      const photo = kept.get(index);
+      if (!photo) (image.closest('figure') || image.closest('span') || image).remove();
+      else {
+        image.setAttribute('src', photo.source);
+        image.setAttribute('alt', photo.alt || '');
+      }
+    });
+    photos.filter(photo => !Number.isInteger(photo.legacyIndex)).forEach(photo => {
+      const figure = document.createElement('figure');
+      figure.className = 'stream';
+      const image = document.createElement('img');
+      image.setAttribute('src', photo.source);
+      image.setAttribute('alt', photo.alt || '');
+      image.setAttribute('loading', 'lazy');
+      image.setAttribute('data-lightbox', '');
+      figure.append(image);
+      main.append(figure);
+    });
+  }
+  return root.outerHTML;
 }
 
 function showNotice(message, error = false) {
@@ -112,7 +219,7 @@ function renderPhotos() {
     const image = document.createElement('img');
     image.className = 'photo-thumb';
     image.alt = '';
-    image.src = photo.source.startsWith('https://')
+    image.src = photo.source.startsWith('https://') || photo.source.startsWith('http://')
       ? photo.source
       : photo.source.startsWith('life-uploads/')
         ? base + 'preview/' + photo.source.split('/').pop()
@@ -126,7 +233,7 @@ function renderPhotos() {
     name.textContent = photo.name || photo.source.split('/').pop() || '本地照片';
     const kind = document.createElement('span');
     kind.className = 'photo-kind';
-    kind.textContent = photo.source.startsWith('https://') ? 'OSS 直链'
+    kind.textContent = photo.source.startsWith('https://') || photo.source.startsWith('http://') ? 'OSS 直链'
       : photo.source.startsWith('/assets/') ? '已发布照片' : '本地照片';
     const alt = document.createElement('input');
     alt.className = 'photo-alt';
@@ -198,8 +305,12 @@ function updateMode() {
     ? '按年份找到每一条记录，再编辑、隐藏或删除。'
     : '写下今天的片段，放上喜欢的照片。剩下的交给编辑器。';
   document.querySelector('#legacy-editor').hidden = !legacy;
-  document.querySelector('#structured-editor').hidden = legacy;
-  document.querySelector('#photo-panel').hidden = legacy;
+  fields.date.required = !legacy;
+  document.querySelector('#date-requirement').textContent = legacy ? '选填' : '必填';
+  document.querySelector('#body-format-label').textContent = legacy ? '普通文字' : '支持 Markdown';
+  document.querySelector('#body-format-hint').textContent = legacy
+    ? '旧记录仍保存在原分页中。修改正文会将原有段落和链接改写为普通文字；复杂排版请使用下方原始 HTML。'
+    : '支持 Markdown、行内公式 $...$ 和块级公式 $$...$$。只放照片也可以。';
   document.querySelector('#mode-badge').textContent = managing
     ? currentRecord ? `02 / EDITING · ${currentRecord.date}` : '02 / MANAGE'
     : '01 / PUBLISH';
@@ -307,8 +418,7 @@ function renderRecords() {
     title.textContent = record.title;
     const excerpt = document.createElement('p');
     excerpt.className = 'entry-excerpt';
-    excerpt.textContent = record.kind === 'legacy' ? `旧版分页 · ${record.photos} 张照片` :
-      record.excerpt || `${record.photos} 张照片`;
+    excerpt.textContent = record.excerpt || `${record.photos} 张照片`;
     const actions = document.createElement('div');
     actions.className = 'entry-actions';
     const edit = document.createElement('button');
@@ -431,10 +541,8 @@ async function deleteRecord(record) {
 
 async function submit(publish) {
   if (busy || uploadsInProgress) return;
-  if (currentRecord?.kind !== 'legacy') {
-    if (!fields.title.value.trim()) { fields.title.focus(); showNotice('请先填写标题。', true); return; }
-    if (!fields.date.value) { fields.date.focus(); showNotice('请选择日期。', true); return; }
-  }
+  if (!fields.title.value.trim() && legacyHtml.value === legacyOriginal) { fields.title.focus(); showNotice('请先填写标题。', true); return; }
+  if (!fields.date.value && currentRecord?.kind !== 'legacy') { fields.date.focus(); showNotice('请选择日期。', true); return; }
   busy = true;
   updateButtons();
   saveStatus.textContent = publish ? '正在发布，请稍候…' : '正在保存文件…';

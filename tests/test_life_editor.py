@@ -21,6 +21,29 @@ EDITOR = runpy.run_path(str(Path(__file__).resolve().parents[1] / "life_editor.p
 
 
 class PublishTests(unittest.TestCase):
+    def test_legacy_photo_upload_is_saved_with_the_original_page(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            page = root / "src/legacy/work/work1.njk"
+            page.parent.mkdir(parents=True)
+            page.write_text('<div class="stream-lr"><div class="stream-meta"><span class="streamitem-date">2024<span>年</span> <a href="">1月2号</a></span></div><div class="stream-main"><h3 class="streamitem-title">旧记录</h3></div></div>', encoding="utf-8")
+            source = "life-uploads/" + "a" * 24 + ".jpg"
+            upload = root / "drafts" / source
+            upload.parent.mkdir(parents=True)
+            upload.write_bytes(b"photo bytes")
+            globals_ = EDITOR["change_existing"].__globals__
+            with patch.dict(globals_, {"ROOT": root, "DRAFT": root / "drafts/life-form.json"}), \
+                    patch.object(legacy_life, "ROOT", root):
+                entry = legacy_life.parse("legacy-work1-1")
+                html = entry["html"].replace('</div></div>', f'<figure class="stream"><img src="{source}" alt="新照片"></figure></div></div>')
+                EDITOR["change_existing"]({"id": entry["id"], "version": entry["version"],
+                                           "data": {"html": html}, "publish": False}, "save")
+                saved = page.read_text(encoding="utf-8")
+                self.assertIn('/assets/images/life/legacy-work1-1-', saved)
+                self.assertNotIn("life-uploads/", saved)
+                self.assertEqual(len(list((root / "assets/images/life").glob("*.jpg"))), 1)
+                self.assertFalse(upload.exists())
+
     def test_proxy_fake_ip_is_allowed_but_private_addresses_stay_blocked(self):
         check = EDITOR["is_public_host"]
         globals_ = check.__globals__
