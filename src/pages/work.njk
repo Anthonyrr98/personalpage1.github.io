@@ -15,16 +15,12 @@ pagination:
   <header>
     <h1 class="extra-title">这大概就是我的生活吧</h1>
     <p class="stream-intro"><em>think more</em></p>
-    {% if pagination.pageNumber == 0 %}<a class="life-archive-jump" href="#life-archive">按年份浏览往年记录 ↓</a>{% endif %}
   </header>
   {% for entry in pagination.items %}
     {% include "partials/life-entry.njk" %}
   {% endfor %}
-  {% if pagination.pageNumber == 0 %}{% include "partials/life-archive.njk" %}{% endif %}
-  {% if pagination.href.previous or pagination.href.next %}
   <nav class="pagination" aria-label="生活记录分页">
     {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">← 最新记录</a>{% endif %}
-    {% if pagination.href.next %}<a href="{{ pagination.href.next }}">更早的记录 →</a>{% endif %}
+    {% if pagination.href.next %}<a href="{{ pagination.href.next }}">更早的记录 →</a>{% else %}<a class="legacy-life-link" href="/media/pages/work/work/work15.html">旧版生活记录（2021—2025，共 15 页）→</a>{% endif %}
   </nav>
-  {% endif %}
 </div>

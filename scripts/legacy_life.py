@@ -16,7 +16,6 @@ DIV = re.compile(r"<div\b[^>]*>|</div\s*>", re.I)
 TITLE = re.compile(r'(<h3\s+class="streamitem-title"[^>]*>)(.*?)(</h3>)', re.I | re.S)
 DATE = re.compile(r'(<span\s+class="streamitem-date"[^>]*>)(.*?</a>\s*)(</span>)', re.I | re.S)
 IMAGE = re.compile(r'<img\b', re.I)
-ANCHOR = re.compile(r'<span id="(life-old-work\d+-\d+)" class="life-entry-anchor"></span>')
 HIDE_OPEN = "{# life-editor:hidden #}{% if false %}"
 HIDE_CLOSE = "{% endif %}{# life-editor:end #}"
 
@@ -113,9 +112,6 @@ def change(entry_id, version, action, html=None):
         html = html.strip().replace("\n", "\r\n" if "\r\n" in text else "\n")
         if len(spans(html)) != 1 or spans(html)[0] != (0, len(html)):
             raise ValueError("旧记录 HTML 必须只包含一个完整的 stream-lr 区块")
-        original_anchor = ANCHOR.search(entry["html"])
-        if original_anchor and (not ANCHOR.search(html) or ANCHOR.search(html).group(1) != original_anchor.group(1)):
-            raise ValueError("请保留记录开头的定位标记，以免归档链接失效")
         updated = text[:start] + html + text[end:]
     else:
         raise ValueError("未知操作")
