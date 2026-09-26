@@ -1,16 +1,19 @@
 """Double-click to open the private life editor in a local browser tab."""
 
 from datetime import date
+import ipaddress
 import json
 import mimetypes
 import os
 from pathlib import Path
 import secrets
+import socket
 import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 import time
 from urllib.parse import parse_qs, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 import webbrowser
 
 from scripts.new_life import IMAGE_EXTENSIONS, MAX_IMAGE_BYTES, ROOT, write_entry
@@ -20,6 +23,52 @@ EDITOR = ROOT / "editor"
 DRAFT = ROOT / "drafts" / "life-form.json"
 UPLOADS = ROOT / "drafts" / "life-uploads"
 MAX_JSON_BYTES = 1024 * 1024
+IMAGE_TYPES = {
+    "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
+    "image/gif": ".gif", "image/avif": ".avif",
+}
+
+
+class NoRedirects(HTTPRedirectHandler):
+    def redirect_request(self, request, fp, code, msg, headers, newurl):
+        raise ValueError("图片链接发生跳转，请填写最终的图片地址")
+
+
+def store_upload(content, name):
+    extension = Path(name).suffix.lower()
+    if extension not in IMAGE_EXTENSIONS:
+        raise ValueError("只支持 JPG、PNG、WebP、GIF 或 AVIF 图片")
+    if not content or len(content) > MAX_IMAGE_BYTES:
+        raise ValueError("图片为空或超过 20 MB")
+    UPLOADS.mkdir(parents=True, exist_ok=True)
+    filename = secrets.token_hex(12) + extension
+    (UPLOADS / filename).write_bytes(content)
+    return {"source": f"life-uploads/{filename}", "name": Path(name).name}
+
+
+def is_public_host(hostname):
+    addresses = socket.getaddrinfo(hostname, 80, type=socket.SOCK_STREAM)
+    return bool(addresses) and all(ipaddress.ip_address(item[4][0]).is_global for item in addresses)
+
+
+def import_http_photo(source):
+    url = urlsplit(source)
+    if url.scheme != "http" or not url.hostname or url.username or url.password or url.port not in (None, 80):
+        raise ValueError("请填写公开的 HTTP 图片直链")
+    if not is_public_host(url.hostname):
+        raise ValueError("只允许导入公开的 OSS 图片地址")
+    request = Request(source, headers={"User-Agent": "LifeEditor/1.0"})
+    with build_opener(NoRedirects()).open(request, timeout=15) as response:
+        content_type = response.headers.get_content_type().lower()
+        extension = Path(url.path).suffix.lower()
+        if content_type in IMAGE_TYPES:
+            extension = IMAGE_TYPES[content_type]
+        elif content_type != "application/octet-stream" or extension not in IMAGE_EXTENSIONS:
+            raise ValueError("链接没有返回受支持的图片")
+        if int(response.headers.get("Content-Length", "0")) > MAX_IMAGE_BYTES:
+            raise ValueError("图片超过 20 MB，请先压缩")
+        content = response.read(MAX_IMAGE_BYTES + 1)
+    return store_upload(content, (Path(url.path).stem or "oss-image") + extension)
 
 
 def empty_draft():
@@ -176,14 +225,12 @@ def make_handler(token):
             try:
                 if path == "/api/upload":
                     name = parse_qs(urlsplit(self.path).query).get("name", [""])[0]
-                    extension = Path(name).suffix.lower()
-                    if extension not in IMAGE_EXTENSIONS:
-                        raise ValueError("只支持 JPG、PNG、WebP、GIF 或 AVIF 图片")
-                    content = self.body(MAX_IMAGE_BYTES)
-                    UPLOADS.mkdir(parents=True, exist_ok=True)
-                    filename = secrets.token_hex(12) + extension
-                    (UPLOADS / filename).write_bytes(content)
-                    self.reply(200, {"source": f"life-uploads/{filename}", "name": Path(name).name})
+                    self.reply(200, store_upload(self.body(MAX_IMAGE_BYTES), name))
+                elif path == "/api/import-url":
+                    source = json.loads(self.body(MAX_JSON_BYTES)).get("url", "")
+                    if not isinstance(source, str):
+                        raise ValueError("图片链接格式不正确")
+                    self.reply(200, import_http_photo(source))
                 elif path in ("/api/draft", "/api/generate", "/api/publish"):
                     data = json.loads(self.body(MAX_JSON_BYTES))
                     if path == "/api/draft":

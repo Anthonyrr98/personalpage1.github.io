@@ -205,14 +205,32 @@ fileInput.addEventListener('change', event => addFiles(event.target.files));
 dropZone.addEventListener('dragover', event => { event.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', event => { event.preventDefault(); dropZone.classList.remove('drag-over'); addFiles(event.dataTransfer.files); });
-document.querySelector('#add-oss').addEventListener('click', () => {
+const addOssButton = document.querySelector('#add-oss');
+addOssButton.addEventListener('click', async () => {
   const input = document.querySelector('#oss-url');
   const url = input.value.trim();
+  let parsed;
   try {
-    if (new URL(url).protocol !== 'https:') throw new Error();
-    photos.push({ source: url, alt: '', name: new URL(url).pathname.split('/').pop() || 'OSS 图片' });
-    renderPhotos(); queueSave(); input.value = '';
-  } catch { input.focus(); showNotice('请填写完整的 HTTPS 图片直链。', true); }
+    parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol) || !parsed.hostname) throw new Error();
+  } catch { input.focus(); showNotice('请填写完整的 HTTP 或 HTTPS 图片直链。', true); return; }
+  if (parsed.protocol === 'http:') {
+    uploadsInProgress++;
+    addOssButton.disabled = true;
+    updateButtons();
+    saveStatus.textContent = '正在导入 HTTP 图片…';
+    try {
+      const result = await api('api/import-url', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      photos.push({ source: result.source, alt: '', name: `OSS · ${result.name}` });
+    } catch (error) { showNotice(error.message, true); return; }
+    finally { uploadsInProgress--; addOssButton.disabled = false; updateButtons(); }
+  } else {
+    photos.push({ source: url, alt: '', name: parsed.pathname.split('/').pop() || 'OSS 图片' });
+  }
+  renderPhotos(); queueSave(); input.value = '';
 });
 document.querySelector('#oss-url').addEventListener('keydown', event => {
   if (event.key === 'Enter') { event.preventDefault(); document.querySelector('#add-oss').click(); }

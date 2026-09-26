@@ -58,8 +58,8 @@
               <small>或拖放到这里 · 单张不超过 20 MB</small>
             </label>
             <div class="or-divider"><span>或者使用 OSS 直链</span></div>
-            <div class="oss-row"><label class="sr-only" for="oss-url">OSS 图片直链</label><input id="oss-url" type="url" placeholder="https://…/photo.jpg"><button id="add-oss" type="button" aria-label="添加 OSS 图片">添加</button></div>
-            <p class="field-hint">使用公开、长期有效的 HTTPS 地址。</p>
+            <div class="oss-row"><label class="sr-only" for="oss-url">OSS 图片直链</label><input id="oss-url" type="url" placeholder="http://…/photo.jpg"><button id="add-oss" type="button" aria-label="添加 OSS 图片">添加</button></div>
+            <p class="field-hint">支持公开的 HTTP 或 HTTPS 图片地址。HTTP 图片会导入到网站，单张不超过 20 MB；HTTPS 直链保持原样。</p>
             <div id="photo-list" class="photo-list" aria-live="polite"></div>
             <p id="photo-empty" class="photo-empty">还没有照片。文字记录也很好。</p>
           </section>
