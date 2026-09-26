@@ -15,12 +15,14 @@ const fileInput = document.querySelector('#photo-input');
 const dropZone = document.querySelector('#drop-zone');
 const entryList = document.querySelector('#entry-list');
 const entrySearch = document.querySelector('#entry-search');
+const yearFilters = document.querySelector('#year-filters');
 const legacyHtml = document.querySelector('#legacy-html');
 let photos = [];
 let records = [];
 let currentRecord = null;
 let editDirty = false;
 let recordFilter = 'all';
+let yearFilter = 'all';
 let saveTimer;
 let saveChain = Promise.resolve();
 let busy = false;
@@ -194,15 +196,80 @@ function updateMode() {
   renderRecords();
 }
 
+function recordDateParts(record) {
+  const match = String(record.date).match(/^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?|年(\d{1,2})月(?:(\d{1,2})[日号])?)?/);
+  if (!match) return { year: '日期不明', month: '日期不明', key: '0000-00-00' };
+  const year = match[1];
+  const month = String(Number(match[2] || match[4] || 0)).padStart(2, '0');
+  const day = String(Number(match[3] || match[5] || 0)).padStart(2, '0');
+  return { year, month, key: `${year}-${month}-${day}` };
+}
+
+function sortRecords() {
+  records.sort((a, b) => recordDateParts(b).key.localeCompare(recordDateParts(a).key) ||
+    b.id.localeCompare(a.id));
+}
+
+function renderYears() {
+  const counts = new Map();
+  for (const record of records) {
+    const year = recordDateParts(record).year;
+    counts.set(year, (counts.get(year) || 0) + 1);
+  }
+  yearFilters.replaceChildren();
+  for (const year of ['all', ...counts.keys()]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = year === 'all' ? '全部年份' : `${year} · ${counts.get(year)}`;
+    button.setAttribute('aria-pressed', String(yearFilter === year));
+    button.addEventListener('click', () => {
+      yearFilter = year;
+      renderRecords();
+      entryList.scrollTop = 0;
+    });
+    yearFilters.append(button);
+  }
+}
+
 function renderRecords() {
+  renderYears();
   const query = entrySearch.value.trim().toLowerCase();
   const shown = records.filter(record =>
+    (yearFilter === 'all' || recordDateParts(record).year === yearFilter) &&
     (recordFilter === 'all' || (recordFilter === 'hidden') === record.hidden) &&
     `${record.title} ${record.date} ${record.excerpt}`.toLowerCase().includes(query));
   document.querySelector('#entry-count').textContent = String(records.length).padStart(2, '0');
   document.querySelector('#entry-empty').hidden = shown.length > 0;
   entryList.replaceChildren();
+  let currentYear;
+  let currentMonth;
+  let yearSection;
+  let monthGrid;
   for (const record of shown) {
+    const { year, month } = recordDateParts(record);
+    if (year !== currentYear) {
+      currentYear = year;
+      currentMonth = null;
+      yearSection = document.createElement('section');
+      yearSection.className = 'entry-year';
+      const yearHeading = document.createElement('h3');
+      yearHeading.className = 'entry-year-heading';
+      yearHeading.textContent = year === '日期不明' ? year : `${year} 年`;
+      yearSection.append(yearHeading);
+      entryList.append(yearSection);
+    }
+    if (month !== currentMonth) {
+      currentMonth = month;
+      const monthSection = document.createElement('section');
+      monthSection.className = 'entry-month';
+      const monthHeading = document.createElement('h4');
+      monthHeading.className = 'entry-month-heading';
+      monthHeading.textContent = month === '00' || month === '日期不明' ? '月份不明' : `${Number(month)} 月`;
+      monthGrid = document.createElement('div');
+      monthGrid.className = 'entry-month-grid';
+      monthSection.append(monthHeading, monthGrid);
+      yearSection.append(monthSection);
+    }
     const card = document.createElement('article');
     card.className = 'entry-card' + (record.hidden ? ' is-hidden' : '') +
       (currentRecord?.id === record.id ? ' is-selected' : '');
@@ -248,13 +315,13 @@ function renderRecords() {
     remove.addEventListener('click', () => deleteRecord(record));
     actions.append(remove);
     card.append(top, title, excerpt, actions);
-    entryList.append(card);
+    monthGrid.append(card);
   }
 }
 
 async function loadRecords() {
   records = await api('api/entries');
-  records.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  sortRecords();
   renderRecords();
 }
 
@@ -377,7 +444,7 @@ async function start() {
     const [draft, status, entries] = await Promise.all([api('api/draft'), api('api/status'), api('api/entries')]);
     setData(draft);
     records = entries;
-    records.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    sortRecords();
     renderRecords();
     canPublish = status.canPublish;
     document.querySelector('#branch-badge').textContent = `当前分支：${status.branch || '未知'}`;

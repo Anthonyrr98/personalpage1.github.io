@@ -23,7 +23,7 @@ with TemporaryDirectory() as directory:
     root = Path(directory)
     legacy = root / "src/legacy/work/work1.njk"
     legacy.parent.mkdir(parents=True)
-    legacy.write_text('---\nlayout: layouts/base.njk\n---\n<div class="stream-lr"><div class="stream-main"><h3 class="streamitem-title">旧记录</h3></div></div>', encoding="utf-8")
+    legacy.write_text('---\nlayout: layouts/base.njk\n---\n<div class="stream-lr"><div class="stream-meta"><span class="streamitem-date">2024<span>年</span> <a href="">1月2号</a></span></div><div class="stream-main"><h3 class="streamitem-title">旧记录</h3></div></div>', encoding="utf-8")
     with patch.dict(server_globals, {
         "ROOT": root,
         "EDITOR": project / "editor",
@@ -45,6 +45,11 @@ with TemporaryDirectory() as directory:
                 page.goto(address)
                 page.wait_for_load_state("networkidle")
                 assert page.locator("#entry-count").inner_text() == "02"
+                assert page.locator(".entry-year-heading").all_inner_texts() == ["2026 年", "2024 年"]
+                assert page.locator(".entry-month-heading").all_inner_texts() == ["9 月", "1 月"]
+                page.get_by_role("button", name="2024 · 1").click()
+                assert page.locator(".entry-card").count() == 1
+                page.get_by_role("button", name="全部年份").click()
                 card = page.locator(".entry-card", has_text="新记录")
                 card.get_by_role("button", name="编辑").click()
                 expect(page.locator("#title")).to_have_value("新记录")
