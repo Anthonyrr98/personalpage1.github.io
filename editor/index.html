@@ -19,7 +19,7 @@
     <main>
       <div class="intro-row">
         <div>
-          <div class="eyebrow"><span>写给自己的小日子</span><span class="eyebrow-line"></span><span>01 / NEW ENTRY</span></div>
+          <div class="eyebrow"><span>写给自己的小日子</span><span class="eyebrow-line"></span><span id="mode-badge">01 / NEW ENTRY</span></div>
           <h1>把日子，<em>写成一页。</em></h1>
           <p class="intro-copy">写下今天的片段，放上喜欢的照片。剩下的交给编辑器。</p>
         </div>
@@ -28,8 +28,24 @@
 
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
 
-      <div class="workspace">
-        <div class="editor-column">
+      <section class="library" aria-labelledby="library-heading">
+        <div class="library-heading">
+          <div><p class="section-kicker">THE ARCHIVE</p><h2 id="library-heading">我的生活记录 <span id="entry-count"></span></h2><p>在这里找回每一天，编辑、隐藏或删除记录。</p></div>
+          <button id="new-entry" class="new-entry" type="button">＋ 写新记录</button>
+        </div>
+        <div class="library-tools"><label class="sr-only" for="entry-search">搜索生活记录</label><input id="entry-search" type="search" placeholder="搜索标题、日期或摘要"><div class="library-filters" role="group" aria-label="筛选记录"><button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="visible" aria-pressed="false">可见</button><button type="button" data-filter="hidden" aria-pressed="false">已隐藏</button></div></div>
+        <div id="entry-list" class="entry-list" aria-live="polite"></div>
+        <p id="entry-empty" class="entry-empty" hidden>这里还没有符合条件的记录。</p>
+      </section>
+
+      <div class="workspace" id="workspace">
+        <section class="sheet legacy-editor" id="legacy-editor" hidden aria-labelledby="legacy-heading">
+          <div class="section-heading"><span class="section-no">旧</span><div><p class="section-kicker">ORIGINAL RECORD</p><h2 id="legacy-heading">编辑旧版记录</h2></div></div>
+          <p class="field-hint">旧记录保存在分页模板中。下面保留原始 HTML 排版；修改文字或图片地址后保存即可。不要删除最外层的 stream-lr 区块。</p>
+          <label class="field-label" for="legacy-html">记录内容（HTML）</label>
+          <textarea id="legacy-html" spellcheck="false"></textarea>
+        </section>
+        <div class="editor-column" id="structured-editor">
           <section class="sheet" aria-labelledby="details-heading">
             <div class="section-heading"><span class="section-no">01</span><div><p class="section-kicker">THE DETAILS</p><h2 id="details-heading">这一页的名字</h2></div></div>
             <label for="title" class="field-label">标题 <span class="required">必填</span></label>
@@ -48,8 +64,8 @@
           </section>
         </div>
 
-        <aside class="side-column" aria-label="照片与发布">
-          <section class="photo-panel" aria-labelledby="photos-heading">
+        <aside class="side-column" id="side-column" aria-label="照片与发布">
+          <section class="photo-panel" id="photo-panel" aria-labelledby="photos-heading">
             <div class="section-heading"><span class="section-no">03</span><div><p class="section-kicker">THE FRAMES</p><h2 id="photos-heading">放几张照片</h2></div></div>
             <label class="drop-zone" for="photo-input" id="drop-zone">
               <input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple hidden>

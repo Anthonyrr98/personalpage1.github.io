@@ -10,13 +10,14 @@ import secrets
 import socket
 import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
+from threading import Lock, Thread
 import time
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener, getproxies
 import webbrowser
 
 from scripts.new_life import IMAGE_EXTENSIONS, MAX_IMAGE_BYTES, ROOT, write_entry
+from scripts import life_records, legacy_life
 
 
 EDITOR = ROOT / "editor"
@@ -28,6 +29,7 @@ IMAGE_TYPES = {
     "image/gif": ".gif", "image/avif": ".avif",
 }
 PROXY_FAKE_IP_RANGE = ipaddress.ip_network("198.18.0.0/15")
+RECORD_LOCK = Lock()
 
 
 class NoRedirects(HTTPRedirectHandler):
@@ -108,11 +110,15 @@ def check_publish_ready():
         raise RuntimeError("本地 main 与 GitHub 不一致，请先同步项目。")
 
 
-def publish_files(output, images, title):
-    paths = [str(path.relative_to(ROOT)) for path in [output, *images]]
+def publish_paths(paths, message):
+    paths = [str(path.relative_to(ROOT)) for path in paths]
     git("add", "--", *paths)
-    git("commit", "-m", f"Add life entry: {title}")
+    git("commit", "-m", message)
     git("push", "origin", "main")
+
+
+def publish_files(output, images, title):
+    publish_paths([output, *images], f"Add life entry: {title}")
 
 
 def save_draft(data):
@@ -149,6 +155,81 @@ def handle_entry(data, publish):
             (DRAFT.parent / source).unlink(missing_ok=True)
     save_draft(empty_draft())
     return 200, {"path": str(output.relative_to(ROOT)), "url": url, "images": len(images), "published": publish}
+
+
+def check_entry_version(entry_id, version):
+    entry = life_records.read_entry(entry_id)
+    if not isinstance(version, str) or version != entry["version"]:
+        raise ValueError("这条记录已被其他操作修改，请重新打开后再编辑")
+    return entry
+
+
+def remove_used_uploads(photos):
+    for photo in photos:
+        source = photo.get("source", "")
+        if isinstance(source, str) and source.startswith("life-uploads/"):
+            (DRAFT.parent / source).unlink(missing_ok=True)
+
+
+def change_existing(payload, action):
+    if not isinstance(payload, dict):
+        raise ValueError("请求格式不正确")
+    with RECORD_LOCK:
+        if isinstance(payload.get("id"), str) and payload["id"].startswith("legacy-"):
+            entry = legacy_life.parse(payload["id"])
+            if entry["version"] != payload.get("version"):
+                raise ValueError("这条记录已被修改，请重新打开")
+            publish = payload.get("publish", False)
+            if not isinstance(publish, bool):
+                raise ValueError("发布选项不正确")
+            if publish:
+                check_publish_ready()
+            data = payload.get("data", {})
+            html = data.get("html") if isinstance(data, dict) else None
+            path, changed = legacy_life.change(entry["id"], entry["version"], action, html)
+            if publish and changed:
+                try:
+                    publish_paths([path], f"{action.capitalize()} legacy life entry: {entry['title']}")
+                except RuntimeError as error:
+                    raise RuntimeError(f"已在本地修改，但推送失败：{error}") from error
+            updated = None if action == "delete" else legacy_life.public(legacy_life.parse(entry["id"]))
+            return {"deleted": action == "delete", "published": publish,
+                    "unchanged": not changed, "entry": updated}
+        entry = check_entry_version(payload.get("id"), payload.get("version"))
+        publish = payload.get("publish", False)
+        if not isinstance(publish, bool):
+            raise ValueError("发布选项不正确")
+        if publish:
+            check_publish_ready()
+        path = life_records.entry_path(entry["id"])
+        if action == "delete":
+            tracked = bool(git("ls-files", "--", str(path.relative_to(ROOT)))) if publish else False
+            path.unlink()
+            if tracked:
+                try:
+                    publish_paths([path], f"Delete life entry: {entry['title']}")
+                except RuntimeError as error:
+                    raise RuntimeError(f"已在本地删除，但推送失败：{error}") from error
+            return {"deleted": True, "published": tracked}
+        data = payload.get("data") if action == "save" else entry
+        if not isinstance(data, dict):
+            raise ValueError("记录内容格式不正确")
+        data = dict(data)
+        data["hidden"] = not entry["hidden"] if action == "visibility" else entry["hidden"]
+        output, images, url = write_entry(data, DRAFT.parent, existing_name=entry["id"],
+                                          extra_frontmatter=entry["extra"])
+        updated = life_records.read_entry(entry["id"])
+        changed = updated["version"] != entry["version"] or bool(images)
+        if publish and changed:
+            verb = "Hide" if data["hidden"] and action == "visibility" else \
+                   "Show" if action == "visibility" else "Update"
+            try:
+                publish_paths([output, *images], f"{verb} life entry: {data['title'].strip()}")
+            except RuntimeError as error:
+                raise RuntimeError(f"已在本地修改，但推送失败：{error}") from error
+        remove_used_uploads(data.get("photos", []))
+        return {"id": entry["id"], "version": updated["version"], "url": url,
+                "hidden": updated["hidden"], "published": publish, "unchanged": not changed}
 
 
 def make_handler(token):
@@ -208,6 +289,20 @@ def make_handler(token):
                 except (OSError, ValueError) as error:
                     self.reply(500, {"error": f"草稿无法读取：{error}"})
                 return
+            if path == "/api/entries":
+                try:
+                    self.reply(200, life_records.list_entries() + legacy_life.list_entries())
+                except (OSError, ValueError) as error:
+                    self.reply(500, {"error": f"记录列表无法读取：{error}"})
+                return
+            if path == "/api/entry":
+                try:
+                    entry_id = parse_qs(urlsplit(self.path).query).get("id", [""])[0]
+                    self.reply(200, legacy_life.public(legacy_life.parse(entry_id)) if entry_id.startswith("legacy-")
+                               else life_records.read_entry(entry_id))
+                except (OSError, ValueError) as error:
+                    self.reply(404, {"error": str(error)})
+                return
             if path == "/api/status":
                 try:
                     branch = git("branch", "--show-current")
@@ -219,6 +314,14 @@ def make_handler(token):
                 name = path.removeprefix("/preview/")
                 file = UPLOADS / name
                 if Path(name).name == name and file.is_file():
+                    self.reply(200, file.read_bytes(), mimetypes.guess_type(name)[0] or "application/octet-stream")
+                else:
+                    self.reply(404, {"error": "图片不存在"})
+                return
+            if path.startswith("/asset/"):
+                name = path.removeprefix("/asset/")
+                file = ROOT / "assets" / "images" / "life" / name
+                if Path(name).name == name and file.suffix.lower() in IMAGE_EXTENSIONS and file.is_file():
                     self.reply(200, file.read_bytes(), mimetypes.guess_type(name)[0] or "application/octet-stream")
                 else:
                     self.reply(404, {"error": "图片不存在"})
@@ -252,6 +355,9 @@ def make_handler(token):
                     else:
                         status, result = handle_entry(data, path == "/api/publish")
                         self.reply(status, result)
+                elif path in ("/api/entry/save", "/api/entry/visibility", "/api/entry/delete"):
+                    payload = json.loads(self.body(MAX_JSON_BYTES))
+                    self.reply(200, change_existing(payload, path.rsplit("/", 1)[1]))
                 elif path == "/api/remove-upload":
                     source = json.loads(self.body(MAX_JSON_BYTES)).get("source", "")
                     if not isinstance(source, str):

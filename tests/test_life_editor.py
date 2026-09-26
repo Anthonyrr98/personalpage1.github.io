@@ -14,7 +14,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from unittest.mock import patch
 
-from scripts import new_life
+from scripts import new_life, life_records, legacy_life
 
 
 EDITOR = runpy.run_path(str(Path(__file__).resolve().parents[1] / "life_editor.pyw"), run_name="test")
@@ -77,7 +77,8 @@ class PublishTests(unittest.TestCase):
                 "DRAFT": root / "drafts/life-form.json",
                 "UPLOADS": root / "drafts/life-uploads",
                 "import_http_photo": lambda _: EDITOR["store_upload"](b"oss image", "oss.jpg"),
-            }), patch.object(new_life, "ROOT", root):
+            }), patch.object(new_life, "ROOT", root), patch.object(life_records, "ROOT", root), \
+                    patch.object(legacy_life, "ROOT", root):
                 server, url = EDITOR["start_server"]()
                 thread = Thread(target=server.serve_forever, daemon=True)
                 thread.start()
@@ -107,6 +108,38 @@ class PublishTests(unittest.TestCase):
                     stem = Path(result["path"]).stem
                     self.assertTrue((root / f"assets/images/life/{stem}-01.png").exists())
                     self.assertEqual((root / f"assets/images/life/{stem}-02.jpg").read_bytes(), b"oss image")
+                    entries = json.loads(urlopen(url + "api/entries").read())
+                    self.assertEqual(len(entries), 1)
+                    self.assertEqual(entries[0]["id"], stem)
+                    original = json.loads(urlopen(url + "api/entry?id=" + stem).read())
+                    updated_data = {**draft, "title": "修改后的标题", "body": "修改后的正文", "photos": original["photos"]}
+                    response = urlopen(Request(url + "api/entry/save", data=json.dumps({
+                        "id": stem, "version": original["version"], "data": updated_data, "publish": False,
+                    }).encode(), method="POST"))
+                    self.assertEqual(response.status, 200)
+                    modified = json.loads(urlopen(url + "api/entry?id=" + stem).read())
+                    self.assertEqual(modified["title"], "修改后的标题")
+                    self.assertEqual(modified["body"], "修改后的正文")
+                    self.assertEqual(modified["url"], original["url"])
+                    with self.assertRaises(HTTPError) as stale:
+                        urlopen(Request(url + "api/entry/visibility", data=json.dumps({
+                            "id": stem, "version": original["version"], "publish": False,
+                        }).encode(), method="POST"))
+                    self.assertEqual(stale.exception.code, 400)
+                    stale.exception.close()
+                    response = urlopen(Request(url + "api/entry/visibility", data=json.dumps({
+                        "id": stem, "version": modified["version"], "publish": False,
+                    }).encode(), method="POST"))
+                    self.assertEqual(response.status, 200)
+                    hidden = json.loads(urlopen(url + "api/entry?id=" + stem).read())
+                    self.assertTrue(hidden["hidden"])
+                    self.assertIn("permalink: false", (root / result["path"]).read_text(encoding="utf-8"))
+                    response = urlopen(Request(url + "api/entry/delete", data=json.dumps({
+                        "id": stem, "version": hidden["version"], "publish": False,
+                    }).encode(), method="POST"))
+                    self.assertEqual(response.status, 200)
+                    self.assertFalse((root / result["path"]).exists())
+                    self.assertTrue((root / f"assets/images/life/{stem}-01.png").exists())
                 finally:
                     server.shutdown()
                     server.server_close()

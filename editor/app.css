@@ -17,3 +17,36 @@ button:disabled{cursor:not-allowed;opacity:.45}
 @media(max-width:900px){.page-shell{padding:0 22px}.workspace{grid-template-columns:1fr}.side-column{grid-template-columns:1fr 1fr}.intro-row{padding:45px 0}.date-stamp{width:100px;height:100px}}
 @media(max-width:650px){.masthead{min-height:70px}.brand-label{font-size:9px;letter-spacing:.1em}.brand{gap:10px}.local-indicator{font-size:0}.pulse-dot{font-size:initial}.intro-row{padding:40px 0 33px}.date-stamp{display:none}h1{font-size:43px}.intro-copy{font-size:13px}.workspace,.side-column{grid-template-columns:1fr;gap:16px}.sheet,.photo-panel,.publish-panel{padding:25px 22px}.section-heading{margin-bottom:23px}.section-heading h2{font-size:24px}.field-row{grid-template-columns:1fr;gap:17px}.writing-sheet{min-height:0}.writing-sheet textarea{height:290px}.footer{margin-top:26px;min-height:95px}.footer span:nth-child(2){display:none}}
 @media(prefers-reduced-motion:no-preference){.sheet,.photo-panel,.publish-panel{animation:rise .55s both}.writing-sheet{animation-delay:.08s}.photo-panel{animation-delay:.13s}.publish-panel{animation-delay:.18s}@keyframes rise{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}}
+
+.library{margin-bottom:27px;padding:30px 36px;background:var(--sheet);border:1px solid #e9e4da;box-shadow:var(--shadow)}
+.library-heading{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.library-heading h2{margin:2px 0 4px;font-size:30px;letter-spacing:-.04em}
+.library-heading h2 span{font-family:Georgia,serif;font-size:16px;color:var(--accent);vertical-align:top}
+.library-heading p:last-child{margin:0;color:var(--muted);font-size:12px}
+.new-entry{min-height:42px;padding:0 18px;border:1px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;white-space:nowrap}
+.new-entry:hover{background:var(--accent-dark)}
+.library-tools{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:23px 0 15px}
+.library-tools input[type=search]{width:min(370px,100%);height:41px;border:1px solid var(--line);background:#fffefa;padding:0 13px;color:var(--ink);outline:0}
+.library-tools input[type=search]:focus{border-color:var(--accent)}
+.library-filters{display:flex;gap:3px;padding:3px;background:#f2eee5}
+.library-filters button{padding:7px 12px;border:0;background:transparent;color:#77766d;font-size:11px;white-space:nowrap}
+.library-filters button[aria-pressed=true]{background:var(--sheet);color:var(--accent-dark);box-shadow:0 1px 5px #4b382018}
+.entry-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:455px;overflow:auto;padding-right:2px}
+.entry-card{padding:17px 18px 14px;border:1px solid #e8e2d8;background:#faf8f2;min-width:0}
+.entry-card.is-selected{border-color:#ae7965;background:#fffaf4}
+.entry-card.is-hidden{background:#f2f0eb}
+.entry-top{display:flex;justify-content:space-between;gap:10px;color:#969184;font-size:11px}
+.entry-state{padding:1px 8px;border:1px solid #c9c2b4;border-radius:99px;color:#77766d;white-space:nowrap}
+.entry-state.is-visible{border-color:#a7b49a;color:#697d5d}
+.entry-title{display:block;margin:9px 0 3px;font-family:Georgia,"Songti SC",serif;font-size:18px;line-height:1.35;overflow-wrap:anywhere}
+.entry-excerpt{margin:0 0 13px;color:#8e8b80;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entry-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.entry-actions button,.entry-actions a{display:inline-block;padding:5px 9px;border:1px solid #d9d2c6;background:#fffdf8;color:#645e51;font-size:11px;text-decoration:none}
+.entry-actions button:hover,.entry-actions a:hover{border-color:var(--accent);color:var(--accent)}
+.entry-actions .danger{margin-left:auto;color:#9e665b}
+.entry-empty{margin:20px 0 0;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:900px){.entry-list{grid-template-columns:1fr}}
+@media(max-width:650px){.library{padding:23px 20px}.library-heading{align-items:flex-start;flex-direction:column}.library-heading h2{font-size:26px}.library-tools{align-items:stretch;flex-direction:column}.library-tools input[type=search]{width:100%}.library-filters{align-self:flex-start}}
+.legacy-editor { grid-column: 1; }
+.legacy-editor textarea { min-height: 440px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.55; }
+[hidden] { display: none !important; }

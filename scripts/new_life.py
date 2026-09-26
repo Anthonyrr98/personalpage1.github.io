@@ -3,6 +3,7 @@
 import argparse
 from datetime import date, datetime
 import json
+import os
 from pathlib import Path
 import re
 import secrets
@@ -30,7 +31,7 @@ def yaml_string(value):
     return json.dumps(value, ensure_ascii=False)
 
 
-def prepare_data(data, photo_base):
+def prepare_data(data, photo_base, existing_name=None, extra_frontmatter=()):
     title = required_text(data, "title")
     day = required_text(data, "date")
     try:
@@ -46,10 +47,13 @@ def prepare_data(data, photo_base):
     slug = slug.strip() or f"{datetime.now():%H%M%S}-{secrets.token_hex(2)}"
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
         raise ValueError("slug 只能使用小写英文字母、数字和中间的连字符")
-    name = f"{day}-{slug}"
+    name = existing_name or f"{day}-{slug}"
     output = ROOT / "src" / "life" / f"{name}.md"
-    if output.exists():
+    if output.exists() and not existing_name:
         raise ValueError(f"记录已存在，不会覆盖：{output}")
+    if existing_name and (not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+", existing_name)
+                          or not output.is_file()):
+        raise ValueError("要修改的记录不存在")
 
     description = data.get("description", "")
     body = data.get("body", "")
@@ -64,6 +68,7 @@ def prepare_data(data, photo_base):
 
     photos = []
     copies = []
+    reserved = set()
     for number, photo in enumerate(raw_photos, start=1):
         if not isinstance(photo, dict):
             raise ValueError(f"第 {number} 张照片格式不正确")
@@ -73,7 +78,13 @@ def prepare_data(data, photo_base):
             raise ValueError(f"第 {number} 张照片的 alt 必须是文字")
         alt = alt.strip() or f"{title}（第{number}张）"
 
-        if source.startswith(("http://", "https://")):
+        if source.startswith("/assets/images/life/"):
+            filename = source.removeprefix("/assets/images/life/")
+            local_image = ROOT / "assets" / "images" / "life" / filename
+            if Path(filename).name != filename or not local_image.is_file():
+                raise ValueError(f"第 {number} 张已发布照片不存在")
+            published_source = source
+        elif source.startswith(("http://", "https://")):
             url = urlsplit(source)
             if url.scheme != "https" or not url.netloc:
                 raise ValueError(f"第 {number} 张照片请使用 HTTPS 直链")
@@ -92,22 +103,31 @@ def prepare_data(data, photo_base):
                 raise ValueError(f"第 {number} 张照片只支持 JPG、PNG、WebP、GIF 或 AVIF")
             if local.stat().st_size > MAX_IMAGE_BYTES:
                 raise ValueError(f"第 {number} 张照片超过 20 MB，请压缩或改用 OSS 直链")
-            destination = ROOT / "assets" / "images" / "life" / f"{name}-{number:02}{extension}"
-            if destination.exists():
-                raise ValueError(f"目标图片已存在，不会覆盖：{destination}")
+            photo_number = number
+            destination = ROOT / "assets" / "images" / "life" / f"{name}-{photo_number:02}{extension}"
+            while destination.exists() or destination in reserved:
+                photo_number += 1
+                destination = ROOT / "assets" / "images" / "life" / f"{name}-{photo_number:02}{extension}"
+            reserved.add(destination)
             copies.append((local, destination))
             published_source = f"/assets/images/life/{destination.name}"
         photos.append((published_source, alt))
 
+    hidden = data.get("hidden", False)
+    if not isinstance(hidden, bool):
+        raise ValueError("hidden 必须是布尔值")
     lines = [
         "---",
         "layout: layouts/life.njk",
-        f"permalink: /life/{name}/",
+        "permalink: false" if hidden else f"permalink: /life/{name}/",
         f"title: {yaml_string(title)}",
         f"description: {yaml_string(description)}",
         f"date: {day}",
-        "tags: [life]",
+        "tags: []" if hidden else "tags: [life]",
     ]
+    if hidden:
+        lines.append("hidden: true")
+    lines.extend(extra_frontmatter)
     if photos:
         lines.append("photos:")
         for source, alt in photos:
@@ -116,8 +136,8 @@ def prepare_data(data, photo_base):
     return output, copies, "\n".join(lines), f"/life/{name}/"
 
 
-def write_entry(data, photo_base):
-    output, copies, markdown, url = prepare_data(data, photo_base)
+def write_entry(data, photo_base, existing_name=None, extra_frontmatter=()):
+    output, copies, markdown, url = prepare_data(data, photo_base, existing_name, extra_frontmatter)
     created = []
     try:
         for source, destination in copies:
@@ -126,9 +146,17 @@ def write_entry(data, photo_base):
                 created.append(destination)
                 shutil.copyfileobj(original, target)
         output.parent.mkdir(parents=True, exist_ok=True)
-        with output.open("x", encoding="utf-8", newline="\n") as file:
-            created.append(output)
-            file.write(markdown)
+        if existing_name:
+            temporary = output.with_name(f".{output.name}.{secrets.token_hex(4)}.tmp")
+            try:
+                temporary.write_text(markdown, encoding="utf-8", newline="\n")
+                os.replace(temporary, output)
+            finally:
+                temporary.unlink(missing_ok=True)
+        else:
+            with output.open("x", encoding="utf-8", newline="\n") as file:
+                created.append(output)
+                file.write(markdown)
     except Exception:
         for path in reversed(created):
             path.unlink(missing_ok=True)
