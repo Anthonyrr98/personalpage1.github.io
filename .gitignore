@@ -2,3 +2,5 @@ node_modules/
 _site/
 .cache/
 .DS_Store
+drafts/life.toml
+__pycache__/

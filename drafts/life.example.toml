@@ -1,0 +1,20 @@
+# 首次运行 npm run life:init 会复制本文件为 drafts/life.toml。
+# 编辑 drafts/life.toml 后运行 npm run life:new。
+title = "" # 必填，例如「周末去公园」
+date = "YYYY-MM-DD" # 必填，例如「2026-09-26」
+description = "" # 可留空，生成时使用标题。
+slug = "" # 可留空，生成器会创建唯一地址；发布后不要改地址。
+body = '''
+在这里写 Markdown 正文。
+'''
+
+# 本地照片：写绝对路径，或相对于 drafts/life.toml 的路径。
+# Windows 路径请使用单引号，或把反斜杠改成正斜杠。
+# [[photos]]
+# source = 'F:\Photos\park.jpg'
+# alt = "公园里的照片"
+
+# OSS 图片：直接填永久有效的 HTTPS 直链，不会下载到仓库。
+# [[photos]]
+# source = "https://example.oss-cn-beijing.aliyuncs.com/life/park.jpg"
+# alt = "一起散步的照片"
