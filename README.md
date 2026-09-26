@@ -6,7 +6,7 @@
 
 ## 本地开发
 
-使用 Node.js 24（见 `.nvmrc`）和 Python。首次安装及预览：
+使用 Node.js 24（见 `.nvmrc`）和 Python 3.11 或更新版本。首次安装及预览：
 
 ```bash
 npm ci
@@ -69,7 +69,25 @@ isArticle: true
 
 ### 新增生活记录
 
-在 `src/life/` 新建 Markdown 文件。`date` 决定列表顺序，`photos` 是可选图片列表；新记录自动出现在 `work.html`，满 10 条后生成下一页。每条记录也有稳定的独立地址。
+Windows 上可以直接双击仓库根目录的 `life_editor.pyw`，它会在浏览器里打开一个仅供本机访问的编辑页面。在页面里填写标题、日期、正文，选择本地照片或粘贴 OSS 链接，然后点击 **只生成文件** 或 **发布到网站**。输入会自动保存，关闭页面后下次打开可继续；草稿及暂存的照片保存在 `drafts/`，不会提交到 Git。页面只监听 `127.0.0.1`，30 分钟没有操作会自动退出，也可点击页面底部的“关闭编辑器”。发布按钮只在本地 `main` 与 GitHub 最新 `main` 一致、暂存区为空时工作；它会只提交本条记录和复制的照片，并推送到 GitHub。GitHub Actions 构建完成后网站才会更新。
+
+如果习惯编辑文件，也可先运行一次 `npm run life:init`，编辑 `drafts/life.toml` 中的标题、日期、正文和照片，再运行 `npm run life:new`。两个入口共用同一套生成逻辑。模板文件已加入 `.gitignore`，草稿不会被提交。生成器会在 `src/life/` 新建 Markdown 记录，不会覆盖已有记录；本地照片会复制到 `assets/images/life/`，OSS HTTPS 直链会直接保留，不会下载到仓库。图片可混用两种来源。
+
+```bash
+npm run life:init
+# 编辑 drafts/life.toml
+npm run life:new
+npm run build
+python tests/check_links.py _site
+git add src/life
+# 如果复制了本地照片，再运行：git add assets/images/life
+git commit -m "Add life entry"
+git push origin main
+```
+
+如果本地不在 `main` 分支，请先通过拉取请求合并，不要直接推送当前分支。推送到 `main` 后 GitHub Actions 自动发布。生成器只负责在本地创建文件和复制照片；它不会替你提交或推送。为避免仓库和页面过大，本地单张照片限制为 20 MB，较大的图片建议先压缩或使用 OSS。OSS 请使用长期有效的公开 HTTPS 直链，不要使用会过期的签名 URL。
+
+也可以直接在 `src/life/` 新建 Markdown 文件。`date` 决定列表顺序，`photos` 是可选图片列表；新记录自动出现在 `work.html`，满 10 条后生成下一页。每条记录也有稳定的独立地址。
 
 ```yaml
 ---

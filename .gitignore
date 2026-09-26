@@ -2,3 +2,7 @@ node_modules/
 _site/
 .cache/
 .DS_Store
+drafts/life.toml
+drafts/life-form.json
+drafts/life-uploads/
+__pycache__/

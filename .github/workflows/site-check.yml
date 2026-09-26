@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Check local life-entry generator
+        run: python -m unittest discover -s tests -p 'test_*.py'
       - name: Check local links and assets
         run: python tests/check_links.py _site
       - name: Install browser test dependencies

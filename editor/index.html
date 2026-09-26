@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>生活记录编辑器 · 赵荣力</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <div class="page-shell">
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark">RL<span class="brand-dot">.</span></span><span class="brand-rule"></span><span class="brand-label">生活记录 / LOCAL STUDIO</span></div>
+      <div class="local-indicator"><span class="pulse-dot"></span>仅在这台电脑运行</div>
+    </header>
+
+    <main>
+      <div class="intro-row">
+        <div>
+          <div class="eyebrow"><span>写给自己的小日子</span><span class="eyebrow-line"></span><span>01 / NEW ENTRY</span></div>
+          <h1>把日子，<em>写成一页。</em></h1>
+          <p class="intro-copy">写下今天的片段，放上喜欢的照片。剩下的交给编辑器。</p>
+        </div>
+        <div class="date-stamp" aria-hidden="true"><span>THE<br>EVERYDAY</span><span class="stamp-flower">✳</span></div>
+      </div>
+
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+      <div class="workspace">
+        <div class="editor-column">
+          <section class="sheet" aria-labelledby="details-heading">
+            <div class="section-heading"><span class="section-no">01</span><div><p class="section-kicker">THE DETAILS</p><h2 id="details-heading">这一页的名字</h2></div></div>
+            <label for="title" class="field-label">标题 <span class="required">必填</span></label>
+            <input id="title" name="title" type="text" maxlength="120" placeholder="例如：周末去公园散步" autocomplete="off" required>
+            <div class="field-row">
+              <div><label for="date" class="field-label">日期 <span class="required">必填</span></label><input id="date" name="date" type="date" required></div>
+              <div><label for="description" class="field-label">一句简介 <span class="optional">选填</span></label><input id="description" name="description" type="text" maxlength="200" placeholder="留空时使用标题"></div>
+            </div>
+          </section>
+
+          <section class="sheet writing-sheet" aria-labelledby="body-heading">
+            <div class="section-heading"><span class="section-no">02</span><div><p class="section-kicker">THE STORY</p><h2 id="body-heading">记录这一刻</h2></div></div>
+            <div class="writing-topline"><label for="body" class="field-label">正文</label><span>支持 Markdown</span></div>
+            <textarea id="body" name="body" placeholder="今天发生了什么？从一句话开始写起……"></textarea>
+            <p class="field-hint">可以写段落、列表和链接。只放照片也可以。</p>
+          </section>
+        </div>
+
+        <aside class="side-column" aria-label="照片与发布">
+          <section class="photo-panel" aria-labelledby="photos-heading">
+            <div class="section-heading"><span class="section-no">03</span><div><p class="section-kicker">THE FRAMES</p><h2 id="photos-heading">放几张照片</h2></div></div>
+            <label class="drop-zone" for="photo-input" id="drop-zone">
+              <input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple hidden>
+              <span class="drop-icon" aria-hidden="true">＋</span>
+              <strong>选择本地照片</strong>
+              <small>或拖放到这里 · 单张不超过 20 MB</small>
+            </label>
+            <div class="or-divider"><span>或者使用 OSS 直链</span></div>
+            <div class="oss-row"><label class="sr-only" for="oss-url">OSS 图片直链</label><input id="oss-url" type="url" placeholder="https://…/photo.jpg"><button id="add-oss" type="button" aria-label="添加 OSS 图片">添加</button></div>
+            <p class="field-hint">使用公开、长期有效的 HTTPS 地址。</p>
+            <div id="photo-list" class="photo-list" aria-live="polite"></div>
+            <p id="photo-empty" class="photo-empty">还没有照片。文字记录也很好。</p>
+          </section>
+
+          <section class="publish-panel" aria-labelledby="publish-heading">
+            <div class="publish-panel-top"><span class="small-sun" aria-hidden="true">✳</span><span id="branch-badge" class="branch-badge">正在检查分支…</span></div>
+            <h2 id="publish-heading">准备好了，就留下它。</h2>
+            <p id="publish-hint">生成文件会保存在本地；发布后 GitHub Actions 会更新网站。</p>
+            <div class="publish-actions"><button id="generate" type="button" class="button-secondary">只生成文件</button><button id="publish" type="button" class="button-primary">发布到网站 <span aria-hidden="true">↗</span></button></div>
+            <div class="save-line"><span id="save-dot" class="save-dot"></span><span id="save-status">正在读取草稿…</span></div>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer class="footer"><span>RL / LIFE STUDIO</span><span>平凡的一天，也值得被记住。</span><button id="close-editor" type="button">关闭编辑器</button></footer>
+  </div>
+</body>
+</html>
