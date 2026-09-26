@@ -44,6 +44,13 @@ with TemporaryDirectory() as directory:
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.goto(address)
                 page.wait_for_load_state("networkidle")
+                expect(page.locator("#view-publish")).to_have_attribute("aria-pressed", "true")
+                expect(page.locator("#workspace")).to_be_visible()
+                expect(page.locator("#manage-library")).to_be_hidden()
+                page.locator("#view-manage").click()
+                expect(page.locator("#view-manage")).to_have_attribute("aria-pressed", "true")
+                expect(page.locator("#manage-library")).to_be_visible()
+                expect(page.locator("#workspace")).to_be_hidden()
                 assert page.locator("#entry-count").inner_text() == "02"
                 assert page.locator(".entry-year-heading").all_inner_texts() == ["2026 年", "2024 年"]
                 assert page.locator(".entry-month-heading").all_inner_texts() == ["9 月", "1 月"]
@@ -68,9 +75,20 @@ with TemporaryDirectory() as directory:
                 card.get_by_role("button", name="编辑").click()
                 expect(page.locator("#legacy-editor")).to_be_visible()
                 page.locator("#legacy-html").fill(page.locator("#legacy-html").input_value().replace("旧记录", "旧记录已改"))
+                page.once("dialog", lambda dialog: dialog.dismiss())
+                page.locator("#view-publish").click()
+                expect(page.locator("#view-manage")).to_have_attribute("aria-pressed", "true")
                 page.locator("#generate").click()
                 page.get_by_text("修改已保存到本地文件", exact=False).wait_for()
                 assert "旧记录已改" in legacy.read_text(encoding="utf-8")
+                page.locator("#view-publish").click()
+                expect(page.locator("#view-publish")).to_have_attribute("aria-pressed", "true")
+                expect(page.locator("#manage-library")).to_be_hidden()
+                expect(page.locator("#workspace")).to_be_visible()
+                page.locator("#view-manage").click()
+                expect(page.locator("#workspace")).to_be_hidden()
+                page.locator("#new-entry").click()
+                expect(page.locator("#view-publish")).to_have_attribute("aria-pressed", "true")
                 assert not errors, errors
                 browser.close()
         finally:

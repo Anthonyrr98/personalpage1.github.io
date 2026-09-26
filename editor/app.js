@@ -17,12 +17,19 @@ const entryList = document.querySelector('#entry-list');
 const entrySearch = document.querySelector('#entry-search');
 const yearFilters = document.querySelector('#year-filters');
 const legacyHtml = document.querySelector('#legacy-html');
+const manageLibrary = document.querySelector('#manage-library');
+const workspace = document.querySelector('#workspace');
+const viewHeading = document.querySelector('#view-heading');
+const viewDescription = document.querySelector('#view-description');
+const viewPublish = document.querySelector('#view-publish');
+const viewManage = document.querySelector('#view-manage');
 let photos = [];
 let records = [];
 let currentRecord = null;
 let editDirty = false;
 let recordFilter = 'all';
 let yearFilter = 'all';
+let activeView = 'publish';
 let saveTimer;
 let saveChain = Promise.resolve();
 let busy = false;
@@ -179,11 +186,23 @@ async function addFiles(files) {
 
 function updateMode() {
   const legacy = currentRecord?.kind === 'legacy';
+  const managing = activeView === 'manage';
+  manageLibrary.hidden = !managing;
+  workspace.hidden = managing && !currentRecord;
+  viewPublish.setAttribute('aria-pressed', String(!managing));
+  viewManage.setAttribute('aria-pressed', String(managing));
+  const emphasis = document.createElement('em');
+  emphasis.textContent = managing ? '慢慢整理。' : '写成一页。';
+  viewHeading.replaceChildren(managing ? '把记录，' : '把日子，', emphasis);
+  viewDescription.textContent = managing
+    ? '按年份找到每一条记录，再编辑、隐藏或删除。'
+    : '写下今天的片段，放上喜欢的照片。剩下的交给编辑器。';
   document.querySelector('#legacy-editor').hidden = !legacy;
   document.querySelector('#structured-editor').hidden = legacy;
   document.querySelector('#photo-panel').hidden = legacy;
-  document.querySelector('#mode-badge').textContent = currentRecord
-    ? `${legacy ? '03 / ORIGINAL' : '02 / EDITING'} · ${currentRecord.date}` : '01 / NEW ENTRY';
+  document.querySelector('#mode-badge').textContent = managing
+    ? currentRecord ? `02 / EDITING · ${currentRecord.date}` : '02 / MANAGE'
+    : '01 / PUBLISH';
   document.querySelector('#publish-heading').textContent = currentRecord
     ? '把这一页，改成现在的样子。' : '准备好了，就留下它。';
   document.querySelector('#publish-hint').textContent = !canPublish
@@ -239,6 +258,7 @@ function renderRecords() {
     (recordFilter === 'all' || (recordFilter === 'hidden') === record.hidden) &&
     `${record.title} ${record.date} ${record.excerpt}`.toLowerCase().includes(query));
   document.querySelector('#entry-count').textContent = String(records.length).padStart(2, '0');
+  document.querySelector('#nav-entry-count').textContent = records.length ? String(records.length) : '';
   document.querySelector('#entry-empty').hidden = shown.length > 0;
   entryList.replaceChildren();
   let currentYear;
@@ -333,6 +353,7 @@ async function openRecord(id) {
     currentRecord = await api('api/entry?id=' + encodeURIComponent(id));
     editDirty = false;
     setData(currentRecord);
+    activeView = 'manage';
     updateMode();
     saveStatus.textContent = '记录已载入';
     document.querySelector('#workspace').scrollIntoView({ behavior: 'smooth' });
@@ -346,10 +367,27 @@ async function newEntry() {
     currentRecord = null;
     editDirty = false;
     setData(await api('api/draft'));
+    activeView = 'publish';
     updateMode();
     saveStatus.textContent = '新记录草稿已载入';
     document.querySelector('#workspace').scrollIntoView({ behavior: 'smooth' });
   } catch (error) { showNotice(error.message, true); }
+}
+
+async function showManage() {
+  if (busy || uploadsInProgress) return;
+  try {
+    if (!currentRecord) await saveDraft();
+    activeView = 'manage';
+    updateMode();
+  } catch (error) { showNotice(error.message, true); }
+}
+
+function showPublish() {
+  if (busy || uploadsInProgress) return;
+  if (currentRecord) { newEntry(); return; }
+  activeView = 'publish';
+  updateMode();
 }
 
 async function changeVisibility(record) {
@@ -445,11 +483,11 @@ async function start() {
     setData(draft);
     records = entries;
     sortRecords();
-    renderRecords();
     canPublish = status.canPublish;
     document.querySelector('#branch-badge').textContent = `当前分支：${status.branch || '未知'}`;
     if (!canPublish) document.querySelector('#publish-hint').textContent = '当前在功能分支。可以先保存到本地；合并并同步 main 后即可一键发布。';
     saveStatus.textContent = '草稿已载入，修改后自动保存';
+    updateMode();
   } catch (error) {
     showNotice(error.message, true);
     saveStatus.textContent = '编辑器加载失败';
@@ -496,6 +534,8 @@ document.querySelector('#oss-url').addEventListener('keydown', event => {
 generateButton.addEventListener('click', () => submit(false));
 publishButton.addEventListener('click', () => submit(true));
 document.querySelector('#new-entry').addEventListener('click', newEntry);
+viewPublish.addEventListener('click', showPublish);
+viewManage.addEventListener('click', showManage);
 entrySearch.addEventListener('input', renderRecords);
 document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
   recordFilter = button.dataset.filter;
