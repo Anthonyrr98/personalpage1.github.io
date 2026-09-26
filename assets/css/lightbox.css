@@ -1,0 +1,54 @@
+img[data-lightbox] {
+  cursor: zoom-in;
+}
+
+img[data-lightbox]:focus-visible {
+  outline: 3px solid #21718d;
+  outline-offset: 4px;
+}
+
+.image-lightbox {
+  position: fixed;
+  box-sizing: border-box;
+  width: min(96vw, 1400px);
+  max-width: none;
+  max-height: 96vh;
+  padding: 48px 12px 12px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.image-lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.image-lightbox img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(96vh - 60px);
+  margin: auto;
+  object-fit: contain;
+}
+
+.image-lightbox-close {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.image-lightbox-close:focus-visible {
+  outline: 3px solid #79a2b2;
+  outline-offset: 3px;
+}
