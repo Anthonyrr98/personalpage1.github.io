@@ -22,7 +22,6 @@
   <link rel="icon" type="image/png" href="/assets/images/icon/32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/assets/images/icon/16x16.png" sizes="16x16">
   <link rel="stylesheet" href="/assets/css/main.css">
-  <link rel="stylesheet" href="/assets/css/experience.css">
   {% if hasCalculatorFields %}<link rel="stylesheet" href="/assets/css/calculator-fields.css">{% endif %}
   {% if hasLightbox %}<link rel="stylesheet" href="/assets/css/lightbox.css">{% endif %}
   {% if hasHighlight %}<link rel="stylesheet" href="/highlight/styles/monokai.min.css"><script defer src="/highlight/highlight.min.js"></script>{% endif %}
@@ -34,11 +33,8 @@
   {% if hasLightbox %}<script defer src="/assets/js/lightbox.js"></script>{% endif %}
 </head>
 <body>
-  <a class="skip-link" href="#page-content">跳转到正文</a>
   {% include "partials/nav.njk" %}
-  {% if isArticle %}<div class="main-content reading-breadcrumb"><a href="/articles.html">← 返回文章列表</a></div>{% endif %}
-  <div id="page-content" tabindex="-1">{{ content | safe }}</div>
-  {% if isArticle %}<div class="main-content reading-breadcrumb reading-breadcrumb-bottom"><a href="/articles.html">← 返回文章列表</a></div>{% endif %}
+  {{ content | safe }}
   {% include "partials/footer.njk" %}
   {% if hasHighlight %}<script>window.addEventListener('load', function () { if (window.hljs) window.hljs.highlightAll(); });</script>{% endif %}
 </body>
