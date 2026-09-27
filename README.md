@@ -4,6 +4,8 @@
 
 **网站地址：** [www.rlzhao.com](https://www.rlzhao.com/)
 
+**文章订阅：** [RSS](https://www.rlzhao.com/feed.xml)。新增文章会自动进入订阅源；生活记录页提供按年份跳转。
+
 ## 本地开发
 
 使用 Node.js 24（见 `.nvmrc`）和 Python 3.11 或更新版本。首次安装及预览：

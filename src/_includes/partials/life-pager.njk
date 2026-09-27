@@ -22,3 +22,8 @@
     </div>
   </details>
 </nav>
+{% set years = collections.life | lifeYearLinks %}
+<nav class="life-years" aria-label="按年份跳转生活记录">
+  <span>按年份：</span>
+  {% for item in years %}<a href="{{ item.url }}">{{ item.year }}</a>{% endfor %}
+</nav>

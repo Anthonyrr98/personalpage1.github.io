@@ -6,6 +6,7 @@ from mimetypes import guess_type
 from pathlib import Path
 from threading import Thread
 from urllib.parse import unquote, urlsplit
+from xml.etree import ElementTree
 import sys
 
 from playwright.sync_api import sync_playwright
@@ -57,6 +58,12 @@ def main():
 
             visit("/index.html")
             assert page.title() == "赵荣力｜个人主页"
+            assert page.locator('link[rel="canonical"]').get_attribute("href") == "https://www.rlzhao.com/"
+            assert page.locator('link[type="application/rss+xml"]').get_attribute("href") == "https://www.rlzhao.com/feed.xml"
+            feed = ElementTree.parse(ROOT / "feed.xml")
+            items = feed.findall("./channel/item")
+            assert len(items) >= 7
+            assert all(item.findtext("link").startswith("https://www.rlzhao.com/") for item in items)
             visit("/articles.html")
             assert page.locator(".blog-box").count() >= 7
             page.locator(".blog-box a:has(img)").first.click()
@@ -73,6 +80,11 @@ def main():
 
             visit("/work.html")
             assert page.locator(".stream-lr").count() >= 3
+            year = page.locator('.life-years a', has_text="2023").first
+            year.click()
+            page.wait_for_url("**/media/pages/work/work/work7.html#life-year-2023")
+            assert page.locator("#life-year-2023").count() == 1
+            visit("/work.html")
             page.locator('.stream-lr a[href="/life/2025-05-10-matching-outfits/"]').click()
             page.wait_for_url("**/life/2025-05-10-matching-outfits/")
             assert "情侣装匹配成功" in page.title()
