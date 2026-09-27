@@ -10,6 +10,7 @@ const photoEmpty = document.querySelector('#photo-empty');
 const saveStatus = document.querySelector('#save-status');
 const notice = document.querySelector('#notice');
 const publishButton = document.querySelector('#publish');
+const retryPushButton = document.querySelector('#retry-push');
 const generateButton = document.querySelector('#generate');
 const fileInput = document.querySelector('#photo-input');
 const dropZone = document.querySelector('#drop-zone');
@@ -37,6 +38,7 @@ let saveChain = Promise.resolve();
 let busy = false;
 let uploadsInProgress = 0;
 let canPublish = false;
+let pendingPublish = null;
 
 async function api(path, options = {}) {
   const response = await fetch(base + path, options);
@@ -44,6 +46,8 @@ async function api(path, options = {}) {
   if (!response.ok) {
     const error = new Error(result.error || '操作失败，请重试。');
     error.generated = result.generated;
+    error.state = result.state;
+    error.pending = result.pending;
     throw error;
   }
   return result;
@@ -180,8 +184,25 @@ function showNotice(message, error = false) {
 }
 
 function updateButtons() {
-  generateButton.disabled = busy || uploadsInProgress > 0;
+  generateButton.disabled = busy || uploadsInProgress > 0 || !!pendingPublish;
   publishButton.disabled = busy || uploadsInProgress > 0 || !canPublish;
+  retryPushButton.disabled = busy;
+  retryPushButton.hidden = !pendingPublish;
+  if (pendingPublish) {
+    document.querySelector('#publish-hint').textContent = `已提交 ${pendingPublish.path}，尚未推送。请继续推送本次提交。`;
+    saveStatus.textContent = 'Git 已提交，等待推送';
+  }
+}
+
+function showPublishFailure(error) {
+  if (error.state === 'committed' && error.pending) {
+    pendingPublish = error.pending;
+    canPublish = false;
+    showNotice(`${error.message}。点击“继续推送本次提交”重试，不会再次修改文件。`, true);
+    return true;
+  }
+  showNotice(error.message, true);
+  return false;
 }
 
 function queueSave() {
@@ -316,7 +337,9 @@ function updateMode() {
     : '01 / PUBLISH';
   document.querySelector('#publish-heading').textContent = currentRecord
     ? '把这一页，改成现在的样子。' : '准备好了，就留下它。';
-  document.querySelector('#publish-hint').textContent = !canPublish
+  document.querySelector('#publish-hint').textContent = pendingPublish
+    ? `已提交 ${pendingPublish.path}，尚未推送。请继续推送本次提交。`
+    : !canPublish
     ? '当前不在 main 分支。可以先保存到本地；合并并同步 main 后即可发布。'
     : currentRecord
       ? `原有网址保持不变：${currentRecord.url}。隐藏或删除后仍可从 Git 历史恢复。`
@@ -517,7 +540,17 @@ async function changeVisibility(record) {
       updateMode();
     }
     showNotice(`已${action}「${record.title}」${result.published ? '，网站将在构建后更新。' : '，修改尚未发布。'}`);
-  } catch (error) { showNotice(error.message, true); }
+  } catch (error) {
+    if (showPublishFailure(error)) {
+      await loadRecords();
+      if (currentRecord?.id === record.id) {
+        currentRecord = await api('api/entry?id=' + encodeURIComponent(record.id));
+        editDirty = false;
+        setData(currentRecord);
+        updateMode();
+      }
+    }
+  }
   finally { busy = false; updateButtons(); }
 }
 
@@ -535,7 +568,13 @@ async function deleteRecord(record) {
     }
     await loadRecords();
     showNotice(`已删除「${record.title}」${result.published ? '，网站将在构建后更新。' : '，本地文件已移除。'}`);
-  } catch (error) { showNotice(error.message, true); }
+  } catch (error) {
+    if (showPublishFailure(error)) {
+      if (currentRecord?.id === record.id) currentRecord = null;
+      await loadRecords();
+      updateMode();
+    }
+  }
   finally { busy = false; updateButtons(); }
 }
 
@@ -575,10 +614,25 @@ async function submit(publish) {
       await loadRecords();
     }
   } catch (error) {
-    showNotice(error.generated
-      ? `${error.message}。文件已生成在 ${error.generated}，请先检查项目状态，不要重复点击。`
-      : error.message, true);
-    saveStatus.textContent = currentRecord ? '修改仍在编辑器中' : '草稿已保留';
+    if (error.state === 'committed' && error.pending) {
+      pendingPublish = error.pending;
+      canPublish = false;
+      if (currentRecord) {
+        currentRecord = await api('api/entry?id=' + encodeURIComponent(currentRecord.id));
+        editDirty = false;
+        setData(currentRecord);
+        updateMode();
+      } else if (error.generated) {
+        setData(await api('api/draft'));
+      }
+      await loadRecords();
+      showNotice(`${error.message}。点击“继续推送本次提交”即可重试，不会再生成记录。`, true);
+    } else {
+      showNotice(error.generated
+        ? `${error.message}。文件已生成在 ${error.generated}，请先检查项目状态，不要重复点击。`
+        : error.message, true);
+      saveStatus.textContent = currentRecord ? '修改仍在编辑器中' : '草稿已保留';
+    }
   } finally {
     busy = false;
     updateButtons();
@@ -592,9 +646,11 @@ async function start() {
     records = entries;
     sortRecords();
     canPublish = status.canPublish;
+    pendingPublish = status.pending;
     document.querySelector('#branch-badge').textContent = `当前分支：${status.branch || '未知'}`;
     if (!canPublish) document.querySelector('#publish-hint').textContent = '当前在功能分支。可以先保存到本地；合并并同步 main 后即可一键发布。';
     saveStatus.textContent = '草稿已载入，修改后自动保存';
+    if (pendingPublish) showNotice(`文件已生成并提交，但尚未推送：${pendingPublish.path}。点击“继续推送本次提交”重试。`);
     updateMode();
   } catch (error) {
     showNotice(error.message, true);
@@ -641,6 +697,26 @@ document.querySelector('#oss-url').addEventListener('keydown', event => {
 });
 generateButton.addEventListener('click', () => submit(false));
 publishButton.addEventListener('click', () => submit(true));
+retryPushButton.addEventListener('click', async () => {
+  if (busy || !pendingPublish) return;
+  busy = true;
+  updateButtons();
+  saveStatus.textContent = '正在继续推送…';
+  try {
+    const result = await api('api/retry-push', { method: 'POST' });
+    pendingPublish = null;
+    canPublish = true;
+    showNotice(`本次提交已推送到 GitHub。网站将在构建完成后更新：${result.url}`);
+    saveStatus.textContent = '已推送';
+    document.querySelector('#publish-hint').textContent = '生成文件会保存在本地；发布后 GitHub Actions 会更新网站。';
+  } catch (error) {
+    showNotice(`继续推送失败：${error.message}`, true);
+    saveStatus.textContent = 'Git 已提交，等待推送';
+  } finally {
+    busy = false;
+    updateButtons();
+  }
+});
 document.querySelector('#new-entry').addEventListener('click', newEntry);
 viewPublish.addEventListener('click', showPublish);
 viewManage.addEventListener('click', showManage);

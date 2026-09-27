@@ -21,6 +21,63 @@ EDITOR = runpy.run_path(str(Path(__file__).resolve().parents[1] / "life_editor.p
 
 
 class PublishTests(unittest.TestCase):
+    def test_new_entry_push_failure_reports_committed_state(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = {"committed": False, "fail_push": True}
+            def fake_git(*args):
+                if args == ("branch", "--show-current"): return "main"
+                if args == ("rev-parse", "HEAD"): return "new-commit" if state["committed"] else "old-commit"
+                if args == ("rev-parse", "origin/main"): return "old-commit"
+                if args == ("rev-parse", "HEAD^"): return "old-commit"
+                if args[0] == "commit": state["committed"] = True
+                if args[0] == "push" and state["fail_push"]: raise RuntimeError("network unavailable")
+                return ""
+            globals_ = EDITOR["handle_entry"].__globals__
+            with patch.dict(globals_, {"ROOT": root, "DRAFT": root / "drafts/life-form.json",
+                                       "PENDING_PUBLISH": root / "drafts/pending-publish.json", "git": fake_git}), \
+                    patch.object(new_life, "ROOT", root):
+                status, result = EDITOR["handle_entry"](
+                    {"title": "测试", "date": "2026-09-27", "body": "正文", "photos": []}, True)
+                self.assertEqual(status, 409)
+                self.assertEqual(result["state"], "committed")
+                self.assertEqual(result["pending"]["commit"], "new-commit")
+                self.assertTrue((root / result["generated"]).exists())
+                self.assertEqual(EDITOR["read_draft"]()["title"], "")
+                state["fail_push"] = False
+                EDITOR["retry_publish"]()
+                self.assertEqual(len(list((root / "src/life").glob("*.md"))), 1)
+
+    def test_failed_push_retries_the_same_commit_without_recreating_entry(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = root / "src/life/one.md"
+            pending_file = root / "drafts/pending-publish.json"
+            calls = []
+            remote = "old-commit"
+            def fake_git(*args):
+                nonlocal remote
+                calls.append(args)
+                if args[0] == "push":
+                    if calls.count(("push", "origin", "main")) == 1:
+                        raise RuntimeError("network unavailable")
+                    remote = "new-commit"
+                if args == ("branch", "--show-current"): return "main"
+                if args == ("rev-parse", "HEAD"): return "new-commit"
+                if args == ("rev-parse", "HEAD^"): return "old-commit"
+                if args == ("rev-parse", "origin/main"): return remote
+                return ""
+            globals_ = EDITOR["publish_files"].__globals__
+            with patch.dict(globals_, {"ROOT": root, "PENDING_PUBLISH": pending_file, "git": fake_git}):
+                with self.assertRaisesRegex(RuntimeError, "network unavailable"):
+                    EDITOR["publish_files"](output, [], "测试", "/work/one/")
+                self.assertEqual(json.loads(pending_file.read_text(encoding="utf-8"))["commit"], "new-commit")
+                result = EDITOR["retry_publish"]()
+                self.assertTrue(result["published"])
+                self.assertFalse(pending_file.exists())
+                self.assertEqual(calls.count(("commit", "-m", "Add life entry: 测试")), 1)
+                self.assertEqual(calls.count(("push", "origin", "main")), 2)
+
     def test_legacy_photo_upload_is_saved_with_the_original_page(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)

@@ -25,6 +25,7 @@ from scripts import life_records, legacy_life
 EDITOR = ROOT / "editor"
 DRAFT = ROOT / "drafts" / "life-form.json"
 UPLOADS = ROOT / "drafts" / "life-uploads"
+PENDING_PUBLISH = ROOT / "drafts" / "pending-publish.json"
 MAX_JSON_BYTES = 1024 * 1024
 IMAGE_TYPES = {
     "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
@@ -103,6 +104,8 @@ def git(*args):
 
 
 def check_publish_ready():
+    if PENDING_PUBLISH.exists():
+        raise RuntimeError("上一次发布已有待推送的提交，请先继续推送。")
     if git("branch", "--show-current") != "main":
         raise RuntimeError("当前不在 main 分支。请先合并并同步项目，再从 main 发布。")
     if git("diff", "--cached", "--name-only"):
@@ -112,15 +115,40 @@ def check_publish_ready():
         raise RuntimeError("本地 main 与 GitHub 不一致，请先同步项目。")
 
 
-def publish_paths(paths, message):
+def publish_paths(paths, message, url=""):
     paths = [str(path.relative_to(ROOT)) for path in paths]
     git("add", "--", *paths)
     git("commit", "-m", message)
+    pending = {"commit": git("rev-parse", "HEAD"), "path": paths[0], "url": url}
+    # Keep the commit identity on disk before pushing, including across editor restarts.
+    PENDING_PUBLISH.parent.mkdir(parents=True, exist_ok=True)
+    temporary = PENDING_PUBLISH.with_suffix(".tmp")
+    temporary.write_text(json.dumps(pending, ensure_ascii=False), encoding="utf-8")
+    os.replace(temporary, PENDING_PUBLISH)
     git("push", "origin", "main")
+    PENDING_PUBLISH.unlink()
 
 
-def publish_files(output, images, title):
-    publish_paths([output, *images], f"Add life entry: {title}")
+def publish_files(output, images, title, url):
+    publish_paths([output, *images], f"Add life entry: {title}", url)
+
+
+def retry_publish():
+    if not PENDING_PUBLISH.is_file():
+        raise ValueError("没有待推送的记录")
+    pending = json.loads(PENDING_PUBLISH.read_text(encoding="utf-8"))
+    if git("branch", "--show-current") != "main" or git("rev-parse", "HEAD") != pending["commit"]:
+        raise RuntimeError("本地提交已变化，请先检查 Git 状态，不能自动重试。")
+    if git("diff", "--cached", "--name-only"):
+        raise RuntimeError("暂存区有其他改动，请先处理后再重试。")
+    git("fetch", "origin", "main")
+    remote = git("rev-parse", "origin/main")
+    if remote != pending["commit"]:
+        if git("rev-parse", "HEAD^") != remote:
+            raise RuntimeError("GitHub 上的 main 已变化，请先手动同步。")
+        git("push", "origin", "main")
+    PENDING_PUBLISH.unlink()
+    return {"published": True, "path": pending["path"], "url": pending["url"]}
 
 
 def save_draft(data):
@@ -148,9 +176,18 @@ def handle_entry(data, publish):
     try:
         output, images, url = write_entry(data, DRAFT.parent)
         if publish:
-            publish_files(output, images, data["title"].strip())
+            publish_files(output, images, data["title"].strip(), url)
     except Exception as error:
-        return 400, {"error": str(error), "generated": str(output.relative_to(ROOT)) if output else None}
+        if publish and PENDING_PUBLISH.is_file():
+            pending = json.loads(PENDING_PUBLISH.read_text(encoding="utf-8"))
+            if output and pending["path"] == str(output.relative_to(ROOT)):
+                remove_used_uploads(data["photos"])
+                save_draft(empty_draft())
+                return 409, {"error": f"文件已生成并提交，但尚未推送：{error}",
+                             "state": "committed", "pending": pending,
+                             "generated": str(output.relative_to(ROOT))}
+        return 400, {"error": str(error), "state": "generated" if output else "failed",
+                     "generated": str(output.relative_to(ROOT)) if output else None}
     for photo in data["photos"]:
         source = photo.get("source", "")
         if source.startswith("life-uploads/"):
@@ -351,7 +388,9 @@ def make_handler(token):
             if path == "/api/status":
                 try:
                     branch = git("branch", "--show-current")
-                    self.reply(200, {"branch": branch, "canPublish": branch == "main"})
+                    pending = json.loads(PENDING_PUBLISH.read_text(encoding="utf-8")) if PENDING_PUBLISH.is_file() else None
+                    self.reply(200, {"branch": branch, "canPublish": branch == "main" and pending is None,
+                                     "pending": pending})
                 except RuntimeError as error:
                     self.reply(500, {"error": str(error)})
                 return
@@ -392,6 +431,8 @@ def make_handler(token):
                     if not isinstance(source, str):
                         raise ValueError("图片链接格式不正确")
                     self.reply(200, import_http_photo(source))
+                elif path == "/api/retry-push":
+                    self.reply(200, retry_publish())
                 elif path in ("/api/draft", "/api/generate", "/api/publish"):
                     data = json.loads(self.body(MAX_JSON_BYTES))
                     if path == "/api/draft":
@@ -418,7 +459,9 @@ def make_handler(token):
                 else:
                     self.reply(404, {"error": "页面不存在"})
             except (OSError, ValueError, RuntimeError) as error:
-                self.reply(400, {"error": str(error)})
+                pending = json.loads(PENDING_PUBLISH.read_text(encoding="utf-8")) if PENDING_PUBLISH.is_file() else None
+                self.reply(409 if pending else 400,
+                           {"error": str(error), "state": "committed" if pending else "failed", "pending": pending})
 
     return Handler
 

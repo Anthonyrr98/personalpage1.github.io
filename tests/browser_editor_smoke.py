@@ -29,6 +29,7 @@ with TemporaryDirectory() as directory:
         "EDITOR": project / "editor",
         "DRAFT": root / "drafts/life-form.json",
         "UPLOADS": root / "drafts/life-uploads",
+        "PENDING_PUBLISH": root / "drafts/pending-publish.json",
         "git": lambda *_: "feature",
     }), patch.object(new_life, "ROOT", root), patch.object(life_records, "ROOT", root), \
             patch.object(legacy_life, "ROOT", root):
@@ -106,6 +107,24 @@ with TemporaryDirectory() as directory:
                 expect(page.locator("#workspace")).to_be_hidden()
                 page.locator("#new-entry").click()
                 expect(page.locator("#view-publish")).to_have_attribute("aria-pressed", "true")
+                pending = root / "drafts/pending-publish.json"
+                pending.parent.mkdir(parents=True, exist_ok=True)
+                pending.write_text(json.dumps({"commit": "new-commit", "path": "src/life/pending.md",
+                                               "url": "/life/pending/"}), encoding="utf-8")
+                def retry_git(*args):
+                    if args == ("branch", "--show-current"): return "main"
+                    if args == ("rev-parse", "HEAD"): return "new-commit"
+                    if args == ("rev-parse", "HEAD^"): return "old-commit"
+                    if args == ("rev-parse", "origin/main"): return "old-commit"
+                    return ""
+                with patch.dict(server_globals, {"git": retry_git}):
+                    page.reload()
+                    expect(page.locator("#retry-push")).to_be_visible()
+                    expect(page.locator("#publish")).to_be_disabled()
+                    page.locator("#retry-push").click()
+                    page.get_by_text("本次提交已推送到 GitHub", exact=False).wait_for()
+                    expect(page.locator("#retry-push")).to_be_hidden()
+                    assert not pending.exists()
                 assert not errors, errors
                 browser.close()
         finally:
