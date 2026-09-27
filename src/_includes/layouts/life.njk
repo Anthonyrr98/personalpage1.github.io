@@ -5,6 +5,7 @@ hasLightbox: true
 hasMath: true
 ---
 <div class="main-content">
+  <nav class="reading-breadcrumb" aria-label="返回生活记录"><a href="/work.html">← 返回日常生活</a></nav>
   <article class="stream-lr">
     <header>
       <p class="streamitem-stamp"><time class="streamitem-date" datetime="{{ date | isoDate }}">{{ date | formatDate }}</time></p>
@@ -16,6 +17,6 @@ hasMath: true
       <figure class="stream"><img src="{{ photo.src }}" alt="{{ photo.alt }}" loading="lazy" data-lightbox width="70%"></figure>
       {% endfor %}
     </div>
-    <p><a href="/work.html">返回日常生活</a></p>
+    <p class="reading-breadcrumb reading-breadcrumb-bottom"><a href="/work.html">← 返回日常生活</a></p>
   </article>
 </div>

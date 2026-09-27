@@ -7,21 +7,23 @@ activeNav: articles
 ---
 <div class="main-content">
   <div class="blog-lr">
-    <div class="blog-left">
+    <div class="blog-left article-grid">
       <header><h1 class="extra-title">文章</h1></header>
       {% for post in collections.article | reverse %}
-      <div class="blog-box">
-        <a href="{{ post.url }}">
+      <article class="blog-box article-card">
+        <a class="article-card-media" href="{{ post.url }}" aria-label="阅读{{ post.data.cardTitle or post.data.title }}">
           <div class="as-image-thumb">
             <span style="padding-bottom: 100%">
               <img src="{{ post.data.cover }}" alt="阅读文章：{{ post.data.cardTitle or post.data.title }}" loading="lazy" width="230" height="180">
             </span>
           </div>
         </a>
-        <p class="as-date__multi">{{ post.data.dateLabel or post.date | formatDate }}<span>/</span> {{ post.data.category or '文章' }}</p>
-        <h2 class="as-title__multi"><a href="{{ post.url }}">{{ post.data.cardTitle or post.data.title }}</a></h2>
-        <p class="as-subtitle__multi">{{ post.data.summary or post.data.description }}</p>
-      </div>
+        <div class="article-card-copy">
+          <p class="as-date__multi">{{ post.data.dateLabel or post.date | formatDate }}<span>/</span> {{ post.data.category or '文章' }}</p>
+          <h2 class="as-title__multi"><a href="{{ post.url }}">{{ post.data.cardTitle or post.data.title }}</a></h2>
+          <p class="as-subtitle__multi">{{ post.data.summary or post.data.description }}</p>
+        </div>
+      </article>
       {% endfor %}
     </div>
   </div>
