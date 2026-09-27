@@ -50,3 +50,6 @@ ul.tags li.tag-item a{background:rgba(255,255,255,0.5);color:#1a3743;font-size:0
 @media(max-width:700px){.life-pager{flex-wrap:wrap}.life-pager-main{width:100%;justify-content:space-between}.life-pager-nearby{display:none}.life-pager-picker{width:100%}.life-pager-picker summary{width:100%}.life-pager-all{left:0;right:auto;width:min(100%,320px)}.life-pager-direction{min-width:44%}}
 
 .life-years{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:4px 0 24px;font-size:.8em}.life-years span{color:#617a6f}.life-years a{background:#fff;border:1px solid #d8dac9;color:#1a3743;padding:3px 9px;text-decoration:none}.life-years a:hover,.life-years a:focus-visible{background:#e9f0e7;border-color:#7ea684}.life-year-anchor{display:block;position:relative;top:-16px;visibility:hidden}
+
+/* Keep timeline photos at their intrinsic aspect ratio when CSS narrows them. */
+.tl-img img{height:auto}

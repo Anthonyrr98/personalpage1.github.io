@@ -60,6 +60,15 @@ def main():
             assert page.title() == "赵荣力｜个人主页"
             assert page.locator('link[rel="canonical"]').get_attribute("href") == "https://www.rlzhao.com/"
             assert page.locator('link[type="application/rss+xml"]').get_attribute("href") == "https://www.rlzhao.com/feed.xml"
+            for filename in ("2004.png", "2013.png"):
+                photo = page.locator(f'ul.tl img[src="/assets/images/tl/{filename}"]')
+                photo.scroll_into_view_if_needed()
+                photo.evaluate("img => img.decode()")
+                ratio_error = photo.evaluate("""img => {
+                    const style = getComputedStyle(img);
+                    return Math.abs(parseFloat(style.width) / parseFloat(style.height) - img.naturalWidth / img.naturalHeight);
+                }""")
+                assert ratio_error < 0.01, f"timeline image distorted: {filename}"
             feed = ElementTree.parse(ROOT / "feed.xml")
             items = feed.findall("./channel/item")
             assert len(items) >= 7
