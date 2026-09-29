@@ -17,8 +17,9 @@ pagination:
     <p class="stream-intro"><em>think more</em></p>
   </header>
   {% include "partials/life-pager.njk" %}
-  {% for entry in pagination.items %}
-    {% if pagination.items | lifeYearStart(loop.index0) %}<span id="life-year-{{ entry.date | lifeYear }}" class="life-year-anchor"></span>{% endif %}
+  {% set orderedEntries = pagination.items | reverse %}
+  {% for entry in orderedEntries %}
+    {% if orderedEntries | lifeYearStart(loop.index0) %}<span id="life-year-{{ entry.date | lifeYear }}" class="life-year-anchor"></span>{% endif %}
     {% include "partials/life-entry.njk" %}
   {% endfor %}
   {% include "partials/life-pager.njk" %}

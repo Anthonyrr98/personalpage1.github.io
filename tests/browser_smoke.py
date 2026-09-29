@@ -89,6 +89,11 @@ def main():
 
             visit("/work.html")
             assert page.locator(".stream-lr").count() >= 3
+            dates = page.locator(".stream-lr time.streamitem-date").evaluate_all(
+                "items => items.map(item => item.getAttribute('datetime'))")
+            assert dates == sorted(dates), f"life entries are not oldest first: {dates}"
+            assert page.locator('.life-years a', has_text="2025").first.get_attribute("href") == \
+                "/media/pages/work/work/work14.html#life-year-2025"
             year = page.locator('.life-years a', has_text="2023").first
             year.click()
             page.wait_for_url("**/media/pages/work/work/work7.html#life-year-2023")

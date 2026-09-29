@@ -22,15 +22,13 @@ export default function (eleventyConfig) {
       }
     }
     const recent = entries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-    const modernYears = new Set();
+    const modernYears = new Map();
     recent.forEach((entry, index) => {
       const year = new Date(entry.date).getUTCFullYear();
-      if (!modernYears.has(year)) {
-        modernYears.add(year);
-        const page = Math.floor(index / 10);
-        links.set(year, `${page ? `/work/page/${page + 1}/` : "/work.html"}#life-year-${year}`);
-      }
+      const page = Math.floor(index / 10);
+      modernYears.set(year, `${page ? `/work/page/${page + 1}/` : "/work.html"}#life-year-${year}`);
     });
+    for (const [year, url] of modernYears) if (!links.has(year)) links.set(year, url);
     return [...links].sort(([a], [b]) => b - a).map(([year, url]) => ({ year, url }));
   });
   eleventyConfig.addFilter("lifePager", (entryCount, legacyPage = 0, newPageIndex = 0) => {
