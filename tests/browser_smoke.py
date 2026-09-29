@@ -74,8 +74,8 @@ def main():
             assert len(items) >= 7
             assert all(item.findtext("link").startswith("https://www.rlzhao.com/") for item in items)
             visit("/articles.html")
-            assert page.locator(".blog-box").count() >= 7
-            page.locator(".blog-box a:has(img)").first.click()
+            assert page.locator(".article-card").count() >= 7
+            page.locator(".article-card-image").first.click()
             page.wait_for_url("**/media/pages/articles/20230503/ms.html")
             assert "Materials Studio" in page.title()
             visit("/media/pages/articles/20230207/qinghai1.html")
