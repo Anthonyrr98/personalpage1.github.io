@@ -3,14 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "eleventy --serve",
+    "dev": "node scripts/dev.js",
     "build": "eleventy",
+    "test:images": "node --test tests/images.mjs",
+    "test:content": "node --test tests/content.mjs",
+    "test:output": "node --test tests/clean_output.mjs",
     "life:init": "python scripts/new_life.py --init",
     "life:new": "python scripts/new_life.py"
   },
   "devDependencies": {
     "@11ty/eleventy": "3.1.6",
-    "markdown-it-footnote": "^4.0.0"
+    "@11ty/eleventy-dev-server": "2.0.8",
+    "chokidar": "3.6.0",
+    "markdown-it-footnote": "^4.0.0",
+    "parse5": "8.0.1",
+    "sharp": "0.35.5"
   },
   "engines": {
     "node": ">=24 <25"

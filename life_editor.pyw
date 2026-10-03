@@ -14,16 +14,17 @@ import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Lock, Thread
 import time
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener, getproxies
 import webbrowser
 
 from scripts.new_life import IMAGE_EXTENSIONS, MAX_IMAGE_BYTES, ROOT, write_entry
-from scripts import life_records, legacy_life
+from scripts import article_records, life_records, legacy_life
 
 
 EDITOR = ROOT / "editor"
 DRAFT = ROOT / "drafts" / "life-form.json"
+ARTICLE_DRAFT = ROOT / "drafts" / "article-form.json"
 UPLOADS = ROOT / "drafts" / "life-uploads"
 PENDING_PUBLISH = ROOT / "drafts" / "pending-publish.json"
 MAX_JSON_BYTES = 1024 * 1024
@@ -33,6 +34,7 @@ IMAGE_TYPES = {
 }
 PROXY_FAKE_IP_RANGE = ipaddress.ip_network("198.18.0.0/15")
 RECORD_LOCK = Lock()
+DRAFT_LOCK = Lock()
 
 
 class NoRedirects(HTTPRedirectHandler):
@@ -115,9 +117,38 @@ def check_publish_ready():
         raise RuntimeError("本地 main 与 GitHub 不一致，请先同步项目。")
 
 
+LOCAL_LIFE_IMAGE = re.compile(
+    r'''(?:\b(?:src|href)\s*=\s*|\b(?:src|cover):\s*)(?P<quote>["'])'''
+    r'''(?P<quoted>/assets/images/life/[^\r\n]*?)(?P=quote)'''
+    r'''|(?:\]\(|\burl\()\s*(?P<link>/assets/images/life/[^\s"'<>\[\]()]+)''',
+    re.I,
+)
+
+
+def publication_paths(paths):
+    """Include photos referenced by the final files, including earlier local saves."""
+    selected = list(dict.fromkeys(paths))
+    for path in list(selected):
+        if path.suffix.lower() not in (".md", ".njk") or not path.is_file():
+            continue
+        for match in LOCAL_LIFE_IMAGE.finditer(path.read_text(encoding="utf-8")):
+            source = match["quoted"] or match["link"]
+            name = unquote(urlsplit(source).path.removeprefix("/assets/images/life/"))
+            image = ROOT / "assets" / "images" / "life" / name
+            if Path(name).name != name or image.suffix.lower() not in IMAGE_EXTENSIONS:
+                raise ValueError("记录引用的本地照片路径不正确")
+            if not image.is_file():
+                raise ValueError(f"记录引用的本地照片不存在：{name}")
+            if image not in selected:
+                selected.append(image)
+    return [str(path.relative_to(ROOT)) for path in selected]
+
+
 def publish_paths(paths, message, url=""):
-    paths = [str(path.relative_to(ROOT)) for path in paths]
+    paths = publication_paths(paths)
     git("add", "--", *paths)
+    if not git("diff", "--cached", "--name-only", "--", *paths):
+        return False
     git("commit", "-m", message)
     pending = {"commit": git("rev-parse", "HEAD"), "path": paths[0], "url": url}
     # Keep the commit identity on disk before pushing, including across editor restarts.
@@ -127,10 +158,11 @@ def publish_paths(paths, message, url=""):
     os.replace(temporary, PENDING_PUBLISH)
     git("push", "origin", "main")
     PENDING_PUBLISH.unlink()
+    return True
 
 
 def publish_files(output, images, title, url):
-    publish_paths([output, *images], f"Add life entry: {title}", url)
+    return publish_paths([output, *images], f"Add life entry: {title}", url)
 
 
 def retry_publish():
@@ -155,16 +187,29 @@ def save_draft(data):
     if not isinstance(data, dict) or not isinstance(data.get("photos"), list):
         raise ValueError("草稿格式不正确")
     allowed = {key: data.get(key, default) for key, default in empty_draft().items()}
-    DRAFT.parent.mkdir(parents=True, exist_ok=True)
-    temporary = DRAFT.with_suffix(".tmp")
-    temporary.write_text(json.dumps(allowed, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(temporary, DRAFT)
-    return allowed
+    revision = data.get("_revision")
+    if revision is not None and (type(revision) is not int or not 0 <= revision <= 9007199254740991):
+        raise ValueError("草稿版本不正确")
+    with DRAFT_LOCK:
+        previous = read_draft()
+        previous_revision = previous.get("_revision", 0)
+        if revision is not None and revision <= previous_revision:
+            # A late autosave must not overwrite the newer pagehide snapshot.
+            return previous
+        allowed["_revision"] = revision if revision is not None else previous_revision + 1
+        DRAFT.parent.mkdir(parents=True, exist_ok=True)
+        temporary = DRAFT.with_name(f".{DRAFT.name}.{secrets.token_hex(4)}.tmp")
+        try:
+            temporary.write_text(json.dumps(allowed, ensure_ascii=False, indent=2), encoding="utf-8")
+            os.replace(temporary, DRAFT)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return allowed
 
 
 def read_draft():
     if not DRAFT.exists():
-        return empty_draft()
+        return {**empty_draft(), "_revision": 0}
     return json.loads(DRAFT.read_text(encoding="utf-8"))
 
 
@@ -173,10 +218,11 @@ def handle_entry(data, publish):
     if publish:
         check_publish_ready()
     output = None
+    published = False
     try:
         output, images, url = write_entry(data, DRAFT.parent)
         if publish:
-            publish_files(output, images, data["title"].strip(), url)
+            published = publish_files(output, images, data["title"].strip(), url)
     except Exception as error:
         if publish and PENDING_PUBLISH.is_file():
             pending = json.loads(PENDING_PUBLISH.read_text(encoding="utf-8"))
@@ -192,8 +238,9 @@ def handle_entry(data, publish):
         source = photo.get("source", "")
         if source.startswith("life-uploads/"):
             (DRAFT.parent / source).unlink(missing_ok=True)
-    save_draft(empty_draft())
-    return 200, {"path": str(output.relative_to(ROOT)), "url": url, "images": len(images), "published": publish}
+    cleared = save_draft(empty_draft())
+    return 200, {"path": str(output.relative_to(ROOT)), "url": url, "images": len(images),
+                 "published": published, "draftRevision": cleared["_revision"]}
 
 
 def check_entry_version(entry_id, version):
@@ -267,15 +314,16 @@ def change_existing(payload, action):
                 for image in images:
                     image.unlink(missing_ok=True)
                 raise
-            if publish and changed:
+            published = False
+            if publish:
                 try:
-                    publish_paths([path, *images], f"{action.capitalize()} legacy life entry: {entry['title']}")
+                    published = publish_paths([path, *images], f"{action.capitalize()} legacy life entry: {entry['title']}", entry["url"])
                 except RuntimeError as error:
                     raise RuntimeError(f"已在本地修改，但推送失败：{error}") from error
             for upload in used:
                 upload.unlink(missing_ok=True)
             updated = None if action == "delete" else legacy_life.public(legacy_life.parse(entry["id"]))
-            return {"deleted": action == "delete", "published": publish,
+            return {"deleted": action == "delete", "published": published,
                     "unchanged": not changed, "entry": updated}
         entry = check_entry_version(payload.get("id"), payload.get("version"))
         publish = payload.get("publish", False)
@@ -287,12 +335,13 @@ def change_existing(payload, action):
         if action == "delete":
             tracked = bool(git("ls-files", "--", str(path.relative_to(ROOT)))) if publish else False
             path.unlink()
+            published = False
             if tracked:
                 try:
-                    publish_paths([path], f"Delete life entry: {entry['title']}")
+                    published = publish_paths([path], f"Delete life entry: {entry['title']}", entry["url"])
                 except RuntimeError as error:
                     raise RuntimeError(f"已在本地删除，但推送失败：{error}") from error
-            return {"deleted": True, "published": tracked}
+            return {"deleted": True, "published": published}
         data = payload.get("data") if action == "save" else entry
         if not isinstance(data, dict):
             raise ValueError("记录内容格式不正确")
@@ -302,16 +351,80 @@ def change_existing(payload, action):
                                           extra_frontmatter=entry["extra"])
         updated = life_records.read_entry(entry["id"])
         changed = updated["version"] != entry["version"] or bool(images)
-        if publish and changed:
+        published = False
+        if publish:
             verb = "Hide" if data["hidden"] and action == "visibility" else \
                    "Show" if action == "visibility" else "Update"
             try:
-                publish_paths([output, *images], f"{verb} life entry: {data['title'].strip()}")
+                published = publish_paths([output, *images], f"{verb} life entry: {data['title'].strip()}", url)
             except RuntimeError as error:
                 raise RuntimeError(f"已在本地修改，但推送失败：{error}") from error
         remove_used_uploads(data.get("photos", []))
         return {"id": entry["id"], "version": updated["version"], "url": url,
-                "hidden": updated["hidden"], "published": publish, "unchanged": not changed}
+                "hidden": updated["hidden"], "published": published, "unchanged": not changed}
+
+
+def change_article(payload):
+    if not isinstance(payload, dict) or not isinstance(payload.get("publish"), bool):
+        raise ValueError("请求格式不正确")
+    with RECORD_LOCK:
+        if payload["publish"]:
+            check_publish_ready()
+        path, changed, article = article_records.save(payload.get("id"), payload.get("version"), payload.get("data"))
+        published = False
+        if payload["publish"]:
+            published = publish_paths([path], f"Update article: {article['cardTitle']}", article["url"])
+        return {"article": article, "unchanged": not changed, "published": published}
+
+
+def empty_article_draft():
+    return {"slug": "", "title": "", "cardTitle": "", "date": date.today().isoformat(),
+            "category": "", "description": "", "summary": "", "cover": "", "body": ""}
+
+
+def save_article_draft(data):
+    if not isinstance(data, dict):
+        raise ValueError("文章草稿格式不正确")
+    allowed = {}
+    for key, default in empty_article_draft().items():
+        value = data.get(key, default)
+        if not isinstance(value, str) or len(value) > MAX_JSON_BYTES:
+            raise ValueError("文章草稿格式不正确")
+        allowed[key] = value
+    ARTICLE_DRAFT.parent.mkdir(parents=True, exist_ok=True)
+    temporary = ARTICLE_DRAFT.with_suffix(".tmp")
+    temporary.write_text(json.dumps(allowed, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(temporary, ARTICLE_DRAFT)
+    return allowed
+
+
+def read_article_draft():
+    return json.loads(ARTICLE_DRAFT.read_text(encoding="utf-8")) if ARTICLE_DRAFT.is_file() else empty_article_draft()
+
+
+def handle_new_article(data, publish):
+    data = save_article_draft(data)
+    if publish:
+        check_publish_ready()
+    path = None
+    article = None
+    published = False
+    try:
+        path, article = article_records.create(data)
+        if publish:
+            published = publish_paths([path], f"Add article: {article['cardTitle']}", article["url"])
+    except Exception as error:
+        pending = json.loads(PENDING_PUBLISH.read_text(encoding="utf-8")) if PENDING_PUBLISH.is_file() else None
+        if pending and path and pending["path"] == str(path.relative_to(ROOT)):
+            save_article_draft(empty_article_draft())
+            return 409, {"error": f"文章已提交，但尚未推送：{error}", "state": "committed",
+                         "pending": pending, "article": article}
+        if path:
+            save_article_draft(empty_article_draft())
+        return 400, {"error": str(error), "state": "generated" if path else "failed",
+                     "article": article}
+    save_article_draft(empty_article_draft())
+    return 200, {"article": article, "published": published}
 
 
 def make_handler(token):
@@ -377,6 +490,25 @@ def make_handler(token):
                 except (OSError, ValueError) as error:
                     self.reply(500, {"error": f"记录列表无法读取：{error}"})
                 return
+            if path == "/api/articles":
+                try:
+                    self.reply(200, article_records.list_articles())
+                except (OSError, ValueError) as error:
+                    self.reply(500, {"error": f"文章列表无法读取：{error}"})
+                return
+            if path == "/api/article-draft":
+                try:
+                    self.reply(200, read_article_draft())
+                except (OSError, ValueError) as error:
+                    self.reply(500, {"error": f"文章草稿无法读取：{error}"})
+                return
+            if path == "/api/article":
+                try:
+                    article_id = parse_qs(urlsplit(self.path).query).get("id", [""])[0]
+                    self.reply(200, article_records.parse(article_id))
+                except (OSError, ValueError) as error:
+                    self.reply(404, {"error": str(error)})
+                return
             if path == "/api/entry":
                 try:
                     entry_id = parse_qs(urlsplit(self.path).query).get("id", [""])[0]
@@ -436,14 +568,24 @@ def make_handler(token):
                 elif path in ("/api/draft", "/api/generate", "/api/publish"):
                     data = json.loads(self.body(MAX_JSON_BYTES))
                     if path == "/api/draft":
-                        save_draft(data)
-                        self.reply(200, {"saved": True})
+                        saved = save_draft(data)
+                        matches = all(saved.get(key) == data.get(key, default)
+                                      for key, default in empty_draft().items())
+                        self.reply(200, {"saved": matches, "revision": saved.get("_revision", 0)})
                     else:
                         status, result = handle_entry(data, path == "/api/publish")
                         self.reply(status, result)
                 elif path in ("/api/entry/save", "/api/entry/visibility", "/api/entry/delete"):
                     payload = json.loads(self.body(MAX_JSON_BYTES))
                     self.reply(200, change_existing(payload, path.rsplit("/", 1)[1]))
+                elif path == "/api/article/save":
+                    self.reply(200, change_article(json.loads(self.body(MAX_JSON_BYTES))))
+                elif path == "/api/article-draft":
+                    save_article_draft(json.loads(self.body(MAX_JSON_BYTES)))
+                    self.reply(200, {"saved": True})
+                elif path in ("/api/article/generate", "/api/article/publish"):
+                    status, result = handle_new_article(json.loads(self.body(MAX_JSON_BYTES)), path.endswith("publish"))
+                    self.reply(status, result)
                 elif path == "/api/remove-upload":
                     source = json.loads(self.body(MAX_JSON_BYTES)).get("source", "")
                     if not isinstance(source, str):

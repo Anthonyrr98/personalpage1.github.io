@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var activeThumbnail = null;
   function openPreview(thumbnail) {
     activeThumbnail = thumbnail;
-    preview.src = thumbnail.currentSrc || thumbnail.src;
+    preview.src = thumbnail.dataset.lightboxSrc || thumbnail.currentSrc || thumbnail.src;
     preview.alt = thumbnail.alt || '图片预览';
     dialog.showModal();
     closeButton.focus();

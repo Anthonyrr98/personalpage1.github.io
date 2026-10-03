@@ -24,6 +24,21 @@ const viewHeading = document.querySelector('#view-heading');
 const viewDescription = document.querySelector('#view-description');
 const viewPublish = document.querySelector('#view-publish');
 const viewManage = document.querySelector('#view-manage');
+const viewLife = document.querySelector('#view-life');
+const viewArticles = document.querySelector('#view-articles');
+const articleNew = document.querySelector('#article-new');
+const articleManage = document.querySelector('#article-manage');
+const articleListPanel = document.querySelector('#article-list-panel');
+const articleWorkspace = document.querySelector('#article-workspace');
+const articleForm = document.querySelector('#article-form');
+const articleFields = Object.fromEntries(['title', 'cardTitle', 'date', 'category', 'description', 'summary', 'cover', 'body']
+  .map(key => [key, document.querySelector('#article-' + key)]));
+let articles = [];
+let currentArticle = null;
+let articleIsNew = false;
+let articleDirty = false;
+let articleDraftTimer;
+let articleDraftChain = Promise.resolve();
 let photos = [];
 let records = [];
 let currentRecord = null;
@@ -33,12 +48,60 @@ let editDirty = false;
 let recordFilter = 'all';
 let yearFilter = 'all';
 let activeView = 'publish';
+let lastLifeView = 'publish';
+let articleMode = 'manage';
 let saveTimer;
 let saveChain = Promise.resolve();
+const lifeBackupKey = 'rlzhao-life-draft';
+let lifeDraftRevision = 0;
+let lifeDraftDirty = false;
+let lifeDraftLoaded = false;
 let busy = false;
 let uploadsInProgress = 0;
 let canPublish = false;
 let pendingPublish = null;
+
+function localDate() {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+}
+
+function lifeDraftSnapshot() {
+  return { ...getData(), _revision: lifeDraftRevision };
+}
+
+function backupLifeDraft() {
+  lifeDraftDirty = true;
+  try { localStorage.setItem(lifeBackupKey, JSON.stringify(lifeDraftSnapshot())); }
+  catch { /* The unsaved-change guard still protects browsers without storage. */ }
+}
+
+function clearLifeBackup(revision) {
+  try {
+    const backup = JSON.parse(localStorage.getItem(lifeBackupKey) || 'null');
+    if (backup && backup._revision <= revision) localStorage.removeItem(lifeBackupKey);
+  } catch { /* Ignore unavailable or invalid browser storage. */ }
+}
+
+function loadLifeDraft(draft, recover = false) {
+  let restored = false;
+  if (recover) {
+    try {
+      const backup = JSON.parse(localStorage.getItem(lifeBackupKey) || 'null');
+      if (backup && Number.isSafeInteger(backup._revision) && backup._revision > (draft._revision || 0)
+          && Array.isArray(backup.photos)
+          && ['title', 'date', 'description', 'body'].every(key => typeof backup[key] === 'string')) {
+        draft = backup;
+        restored = true;
+      } else clearLifeBackup(draft._revision || 0);
+    } catch { /* A damaged browser backup must not block the server draft. */ }
+  }
+  lifeDraftRevision = draft._revision || 0;
+  lifeDraftDirty = restored;
+  lifeDraftLoaded = true;
+  setData(draft);
+  return restored;
+}
 
 async function api(path, options = {}) {
   const response = await fetch(base + path, options);
@@ -48,6 +111,7 @@ async function api(path, options = {}) {
     error.generated = result.generated;
     error.state = result.state;
     error.pending = result.pending;
+    error.article = result.article;
     throw error;
   }
   return result;
@@ -112,7 +176,8 @@ function buildLegacyHtml() {
   const before = JSON.parse(legacyInitial);
   const after = JSON.parse(legacySnapshot());
   if (after.title !== before.title) title.textContent = after.title;
-  if (after.date !== before.date) {
+  // An empty optional date preserves the original, including partial historical dates.
+  if (after.date && after.date !== before.date) {
     const stamp = root.querySelector('.streamitem-date');
     if (!stamp) throw new Error('旧记录的日期结构无法修改，请使用原始 HTML 编辑。');
     const [year, month, day] = after.date.split('-').map(Number);
@@ -184,10 +249,20 @@ function showNotice(message, error = false) {
 }
 
 function updateButtons() {
+  // Lock every editable control before an async save can replace its contents.
+  document.querySelectorAll('input, textarea, select, button').forEach(control => {
+    control.disabled = busy;
+  });
+  document.querySelector('main').setAttribute('aria-busy', String(busy));
+  document.querySelector('#add-oss').disabled = busy || uploadsInProgress > 0;
   generateButton.disabled = busy || uploadsInProgress > 0 || !!pendingPublish;
   publishButton.disabled = busy || uploadsInProgress > 0 || !canPublish;
   retryPushButton.disabled = busy;
   retryPushButton.hidden = !pendingPublish;
+  document.querySelector('#article-save').disabled = busy || !!pendingPublish || (!currentArticle && !articleIsNew);
+  document.querySelector('#article-publish').disabled = busy || !canPublish || (!currentArticle && !articleIsNew);
+  document.querySelector('#article-retry').hidden = !pendingPublish;
+  document.querySelector('#article-retry').disabled = busy;
   if (pendingPublish) {
     document.querySelector('#publish-hint').textContent = `已提交 ${pendingPublish.path}，尚未推送。请继续推送本次提交。`;
     saveStatus.textContent = 'Git 已提交，等待推送';
@@ -212,6 +287,8 @@ function queueSave() {
     saveStatus.textContent = '修改尚未保存';
     return;
   }
+  lifeDraftRevision++;
+  backupLifeDraft();
   saveStatus.textContent = '正在保存草稿…';
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => saveDraft(), 550);
@@ -220,13 +297,22 @@ function queueSave() {
 function saveDraft() {
   if (currentRecord) return Promise.resolve();
   clearTimeout(saveTimer);
-  const snapshot = getData();
+  lifeDraftRevision++;
+  backupLifeDraft();
+  const snapshot = lifeDraftSnapshot();
   saveChain = saveChain.catch(() => {}).then(() => api('api/draft', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(snapshot),
   }));
-  saveChain.then(() => { saveStatus.textContent = '草稿已自动保存'; })
+  saveChain.then(result => {
+    if (!currentRecord && result.saved && result.revision === snapshot._revision
+        && JSON.stringify(snapshot) === JSON.stringify(lifeDraftSnapshot())) {
+      lifeDraftDirty = false;
+      clearLifeBackup(snapshot._revision);
+      saveStatus.textContent = '草稿已自动保存';
+    }
+  })
     .catch(() => { saveStatus.textContent = '草稿保存失败，请检查编辑器'; });
   return saveChain;
 }
@@ -285,9 +371,11 @@ function renderPhotos() {
     card.append(image, info, remove);
     photoList.append(card);
   });
+  updateButtons();
 }
 
 async function addFiles(files) {
+  if (busy) return;
   const selected = Array.from(files);
   if (!selected.length) return;
   uploadsInProgress += selected.length;
@@ -315,26 +403,45 @@ async function addFiles(files) {
 function updateMode() {
   const legacy = currentRecord?.kind === 'legacy';
   const managing = activeView === 'manage';
+  const articleView = activeView === 'articles';
+  document.querySelector('#life-actions').hidden = articleView;
+  document.querySelector('#article-actions').hidden = !articleView;
   manageLibrary.hidden = !managing;
-  workspace.hidden = managing && !currentRecord;
-  viewPublish.setAttribute('aria-pressed', String(!managing));
+  articleWorkspace.hidden = !articleView;
+  articleListPanel.hidden = articleMode === 'new';
+  document.querySelector('.article-layout').classList.toggle('is-new', articleMode === 'new');
+  document.querySelector('.article-layout').classList.toggle('is-empty', articleMode === 'manage' && !currentArticle);
+  workspace.hidden = articleView || (managing && !currentRecord && !pendingPublish);
+  viewLife.setAttribute('aria-pressed', String(!articleView));
+  viewPublish.setAttribute('aria-pressed', String(activeView === 'publish'));
   viewManage.setAttribute('aria-pressed', String(managing));
+  viewArticles.setAttribute('aria-pressed', String(articleView));
+  articleNew.setAttribute('aria-pressed', String(articleMode === 'new'));
+  articleManage.setAttribute('aria-pressed', String(articleMode === 'manage'));
+  document.querySelector('#section-kicker').textContent = articleView ? '写给读者的文章' : '写给自己的小日子';
+  document.querySelector('#section-stamp').innerHTML = articleView ? 'WORDS<br>& IDEAS' : 'THE<br>EVERYDAY';
+  document.querySelector('#article-heading').textContent = articleMode === 'new' ? '写新文章' : currentArticle ? '编辑文章' : '文章归档';
+  document.querySelector('#article-intro').textContent = articleMode === 'new'
+    ? '填写文章信息和 Markdown 正文，草稿会保存在本机。'
+    : currentArticle ? '修改文章信息和正文，保存后网址保持不变。' : '选择现有文章继续修改。';
   const emphasis = document.createElement('em');
-  emphasis.textContent = managing ? '慢慢整理。' : '写成一页。';
-  viewHeading.replaceChildren(managing ? '把记录，' : '把日子，', emphasis);
-  viewDescription.textContent = managing
+  emphasis.textContent = articleView ? articleMode === 'new' ? '从这里开始。' : '继续写好。' : managing ? '慢慢整理。' : '写成一页。';
+  viewHeading.replaceChildren(articleView ? '文章，' : managing ? '把记录，' : '把日子，', emphasis);
+  viewDescription.textContent = articleView ? articleMode === 'new' ? '写下想分享的内容，准备好后生成或发布。' : '从归档中选择一篇文章继续编辑。' : managing
     ? '按年份找到每一条记录，再编辑、隐藏或删除。'
     : '写下今天的片段，放上喜欢的照片。剩下的交给编辑器。';
   document.querySelector('#legacy-editor').hidden = !legacy;
   fields.date.required = !legacy;
   document.querySelector('#date-requirement').textContent = legacy ? '选填' : '必填';
+  document.querySelector('#date-hint').hidden = !legacy;
   document.querySelector('#body-format-label').textContent = legacy ? '普通文字' : '支持 Markdown';
   document.querySelector('#body-format-hint').textContent = legacy
     ? '旧记录仍保存在原分页中。修改正文会将原有段落和链接改写为普通文字；复杂排版请使用下方原始 HTML。'
     : '支持 Markdown、行内公式 $...$ 和块级公式 $$...$$。只放照片也可以。';
-  document.querySelector('#mode-badge').textContent = managing
-    ? currentRecord ? `02 / EDITING · ${currentRecord.date}` : '02 / MANAGE'
-    : '01 / PUBLISH';
+  document.querySelector('#mode-badge').textContent = articleView
+    ? articleMode === 'new' ? '02 / ARTICLE · NEW' : '02 / ARTICLE · ARCHIVE'
+    : managing ? currentRecord ? `01 / LIFE · EDITING · ${currentRecord.date}` : '01 / LIFE · ARCHIVE'
+    : '01 / LIFE · NEW';
   document.querySelector('#publish-heading').textContent = currentRecord
     ? '把这一页，改成现在的样子。' : '准备好了，就留下它。';
   document.querySelector('#publish-hint').textContent = pendingPublish
@@ -470,6 +577,7 @@ function renderRecords() {
     card.append(top, title, excerpt, actions);
     monthGrid.append(card);
   }
+  updateButtons();
 }
 
 async function loadRecords() {
@@ -481,46 +589,71 @@ async function loadRecords() {
 async function openRecord(id) {
   if (busy || uploadsInProgress) return;
   if (currentRecord && editDirty && !confirm('当前修改尚未保存。确定放弃并打开另一条记录吗？')) return;
+  busy = true; updateButtons();
   try {
     if (!currentRecord) await saveDraft();
     currentRecord = await api('api/entry?id=' + encodeURIComponent(id));
     editDirty = false;
     setData(currentRecord);
     activeView = 'manage';
+    lastLifeView = 'manage';
     updateMode();
     saveStatus.textContent = '记录已载入';
     document.querySelector('#workspace').scrollIntoView({ behavior: 'smooth' });
   } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
 }
 
 async function newEntry() {
   if (busy || uploadsInProgress) return;
   if (currentRecord && editDirty && !confirm('当前修改尚未保存。确定放弃并写新记录吗？')) return;
+  busy = true; updateButtons();
   try {
+    const draft = await api('api/draft');
     currentRecord = null;
     editDirty = false;
-    setData(await api('api/draft'));
+    loadLifeDraft(draft, true);
     activeView = 'publish';
+    lastLifeView = 'publish';
     updateMode();
     saveStatus.textContent = '新记录草稿已载入';
     document.querySelector('#workspace').scrollIntoView({ behavior: 'smooth' });
   } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
 }
 
 async function showManage() {
   if (busy || uploadsInProgress) return;
+  if (articleDirty && !confirm('当前文章有未保存的修改。确定离开吗？')) return;
+  busy = true; updateButtons();
   try {
     if (!currentRecord) await saveDraft();
     activeView = 'manage';
+    lastLifeView = 'manage';
     updateMode();
   } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
 }
 
 function showPublish() {
   if (busy || uploadsInProgress) return;
+  if (articleDirty && !confirm('当前文章有未保存的修改。确定离开吗？')) return;
   if (currentRecord) { newEntry(); return; }
   activeView = 'publish';
+  lastLifeView = 'publish';
   updateMode();
+}
+
+async function showLife() {
+  if (busy || uploadsInProgress) return;
+  if (articleDirty && !articleIsNew && !confirm('当前文章有未保存的修改。确定离开吗？')) return;
+  busy = true; updateButtons();
+  try {
+    if (articleIsNew) { clearTimeout(articleDraftTimer); await saveNewArticleDraft(); }
+    activeView = lastLifeView;
+    updateMode();
+  } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
 }
 
 async function changeVisibility(record) {
@@ -563,14 +696,18 @@ async function deleteRecord(record) {
       body: JSON.stringify({ id: record.id, version: record.version, publish: canPublish }) });
     if (currentRecord?.id === record.id) {
       currentRecord = null; editDirty = false;
-      setData(await api('api/draft'));
+      loadLifeDraft(await api('api/draft'), true);
       updateMode();
     }
     await loadRecords();
     showNotice(`已删除「${record.title}」${result.published ? '，网站将在构建后更新。' : '，本地文件已移除。'}`);
   } catch (error) {
     if (showPublishFailure(error)) {
-      if (currentRecord?.id === record.id) currentRecord = null;
+      if (currentRecord?.id === record.id) {
+        currentRecord = null;
+        editDirty = false;
+        loadLifeDraft(await api('api/draft'), true);
+      }
       await loadRecords();
       updateMode();
     }
@@ -597,10 +734,11 @@ async function submit(publish) {
       setData(currentRecord);
       updateMode();
       await loadRecords();
-      saveStatus.textContent = result.unchanged ? '内容没有变化' : '修改已保存';
-      showNotice(result.unchanged ? '内容没有变化。' : publish
+      saveStatus.textContent = result.published ? '已推送' : result.unchanged ? '内容没有变化' : '修改已保存';
+      showNotice(result.published
         ? '修改已推送到 GitHub，网站将在构建完成后更新。'
-        : '修改已保存到本地文件，尚未发布。');
+        : publish ? '没有待发布的本地修改。'
+        : result.unchanged ? '内容没有变化。' : '修改已保存到本地文件，尚未发布。');
     } else {
       await saveDraft();
       const result = await api(publish ? 'api/publish' : 'api/generate', {
@@ -609,7 +747,8 @@ async function submit(publish) {
       showNotice(publish
         ? `已推送到 GitHub。网站将在构建完成后更新：${result.url}`
         : `已生成 ${result.path}。检查文件后可以自行提交，或填写下一条记录。`);
-      setData({ title: '', date: new Date().toISOString().slice(0, 10), description: '', body: '', photos: [] });
+      clearLifeBackup(result.draftRevision);
+      loadLifeDraft({ title: '', date: localDate(), description: '', body: '', photos: [], _revision: result.draftRevision });
       saveStatus.textContent = '新草稿已准备好';
       await loadRecords();
     }
@@ -623,7 +762,8 @@ async function submit(publish) {
         setData(currentRecord);
         updateMode();
       } else if (error.generated) {
-        setData(await api('api/draft'));
+        loadLifeDraft(await api('api/draft'));
+        clearLifeBackup(lifeDraftRevision);
       }
       await loadRecords();
       showNotice(`${error.message}。点击“继续推送本次提交”即可重试，不会再生成记录。`, true);
@@ -640,10 +780,14 @@ async function submit(publish) {
 }
 
 async function start() {
+  busy = true; updateButtons();
   try {
-    const [draft, status, entries] = await Promise.all([api('api/draft'), api('api/status'), api('api/entries')]);
-    setData(draft);
+    const [draft, status, entries, availableArticles] = await Promise.all([
+      api('api/draft'), api('api/status'), api('api/entries'), api('api/articles')]);
+    const recovered = loadLifeDraft(draft, true);
     records = entries;
+    articles = availableArticles;
+    renderArticles();
     sortRecords();
     canPublish = status.canPublish;
     pendingPublish = status.pending;
@@ -652,12 +796,236 @@ async function start() {
     saveStatus.textContent = '草稿已载入，修改后自动保存';
     if (pendingPublish) showNotice(`文件已生成并提交，但尚未推送：${pendingPublish.path}。点击“继续推送本次提交”重试。`);
     updateMode();
+    if (recovered) {
+      saveStatus.textContent = '已恢复浏览器中尚未同步的草稿';
+      saveDraft().catch(() => {});
+    }
   } catch (error) {
     showNotice(error.message, true);
     saveStatus.textContent = '编辑器加载失败';
   }
+  busy = false;
   updateButtons();
 }
+
+function renderArticles() {
+  document.querySelector('#nav-article-count').textContent = String(articles.length).padStart(2, '0');
+  const list = document.querySelector('#article-list');
+  const query = document.querySelector('#article-search').value.trim().toLowerCase();
+  list.replaceChildren();
+  for (const article of articles.filter(item =>
+    `${item.title} ${item.cardTitle} ${item.date} ${item.category}`.toLowerCase().includes(query))) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'article-item';
+    button.setAttribute('aria-current', String(currentArticle?.id === article.id));
+    const title = document.createElement('strong');
+    title.textContent = article.cardTitle;
+    const detail = document.createElement('small');
+    detail.textContent = `${article.date} · ${article.category}`;
+    button.append(title, detail);
+    button.addEventListener('click', () => openArticle(article.id));
+    list.append(button);
+  }
+  if (!list.childElementCount) list.textContent = '没有符合条件的文章。';
+  updateButtons();
+}
+
+async function openArticle(id) {
+  if (busy) return;
+  if (articleDirty && !confirm('当前文章有未保存的修改。确定放弃吗？')) return;
+  busy = true; updateButtons();
+  try {
+    currentArticle = await api('api/article?id=' + encodeURIComponent(id));
+    articleIsNew = false;
+    articleMode = 'manage';
+    for (const [key, input] of Object.entries(articleFields)) input.value = currentArticle[key] || '';
+    document.querySelector('#article-path').textContent = `src/articles/${currentArticle.id}.${currentArticle.format === 'markdown' ? 'md' : 'njk'} · ${currentArticle.url}`;
+    document.querySelector('#article-slug-row').hidden = true;
+    document.querySelector('#article-body-label').textContent = currentArticle.format === 'markdown' ? '正文 Markdown' : '正文 HTML / Nunjucks';
+    document.querySelector('#article-body-hint').textContent = currentArticle.format === 'markdown'
+      ? '支持 Markdown，也可以在正文中加入 HTML。'
+      : '正文按原始模板代码编辑；请保留文章所需的 HTML 结构。';
+    document.querySelector('#article-save').textContent = '保存到本地';
+    document.querySelector('#article-status').textContent = '文章已载入';
+    articleForm.hidden = false;
+    articleDirty = false;
+    updateMode();
+    renderArticles();
+    updateButtons();
+  } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
+}
+
+function getArticleData() {
+  return {slug: document.querySelector('#article-slug').value.trim(),
+    ...Object.fromEntries(Object.entries(articleFields).map(([key, input]) => [key, input.value]))};
+}
+
+function saveNewArticleDraft() {
+  if (!articleIsNew) return articleDraftChain;
+  const data = getArticleData();
+  articleDraftChain = articleDraftChain.catch(() => {}).then(() => api('api/article-draft', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })).then(result => {
+    if (JSON.stringify(data) === JSON.stringify(getArticleData())) articleDirty = false;
+    return result;
+  });
+  return articleDraftChain;
+}
+
+async function newArticle() {
+  if (busy) return;
+  if (articleDirty && !articleIsNew && !confirm('当前文章有未保存的修改。确定放弃吗？')) return;
+  busy = true; updateButtons();
+  try {
+    if (articleIsNew) { clearTimeout(articleDraftTimer); await saveNewArticleDraft(); }
+    const draft = await api('api/article-draft');
+    currentArticle = null;
+    articleIsNew = true;
+    articleMode = 'new';
+    document.querySelector('#article-slug').value = draft.slug || '';
+    for (const [key, input] of Object.entries(articleFields)) input.value = draft[key] || '';
+    document.querySelector('#article-slug-row').hidden = false;
+    document.querySelector('#article-path').textContent = '新文章将在保存后生成固定网址';
+    document.querySelector('#article-body-label').textContent = '正文 Markdown';
+    document.querySelector('#article-body-hint').textContent = '支持 Markdown，也可以在正文中加入 HTML。';
+    document.querySelector('#article-save').textContent = '生成到本地';
+    document.querySelector('#article-status').textContent = '草稿会自动保存到本机';
+    articleForm.hidden = false;
+    articleDirty = false;
+    activeView = 'articles';
+    updateMode();
+    renderArticles();
+    updateButtons();
+  } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
+}
+
+async function showArticles() {
+  if (busy || uploadsInProgress) return;
+  if (currentRecord && editDirty && !confirm('当前记录有未保存的修改。确定离开吗？')) return;
+  busy = true; updateButtons();
+  try {
+    if (!currentRecord) await saveDraft();
+    activeView = 'articles';
+    updateMode();
+  } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
+}
+
+async function showArticleManage() {
+  if (busy) return;
+  if (articleDirty && !articleIsNew && !confirm('当前文章有未保存的修改。确定离开吗？')) return;
+  busy = true; updateButtons();
+  try {
+    if (articleIsNew) { clearTimeout(articleDraftTimer); await saveNewArticleDraft(); }
+    articleIsNew = false;
+    articleDirty = false;
+    articleMode = 'manage';
+    articleForm.hidden = !currentArticle;
+    updateMode();
+  } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
+}
+
+async function saveArticle(publish) {
+  if (busy || (!currentArticle && !articleIsNew)) return;
+  busy = true;
+  updateButtons();
+  document.querySelector('#article-status').textContent = publish ? '正在发布…' : '正在保存…';
+  try {
+    clearTimeout(articleDraftTimer);
+    // A failed automatic draft request must not prevent an explicit save retry.
+    await articleDraftChain.catch(() => {});
+    const data = getArticleData();
+    const creating = articleIsNew;
+    const result = await api(creating ? `api/article/${publish ? 'publish' : 'generate'}` : 'api/article/save', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(creating ? data : { id: currentArticle.id, version: currentArticle.version, data, publish }) });
+    currentArticle = result.article;
+    articleIsNew = false;
+    articleMode = 'manage';
+    articleDirty = false;
+    document.querySelector('#article-path').textContent = `src/articles/${currentArticle.id}.${currentArticle.format === 'markdown' ? 'md' : 'njk'} · ${currentArticle.url}`;
+    document.querySelector('#article-slug-row').hidden = true;
+    document.querySelector('#article-save').textContent = '保存到本地';
+    articles = await api('api/articles');
+    updateMode();
+    renderArticles();
+    notice.hidden = true;
+    document.querySelector('#article-status').textContent = result.published ? '已推送，网站将在构建后更新' :
+      publish ? '没有待发布的本地修改' : result.unchanged ? '内容没有变化' : '已保存到本地';
+  } catch (error) {
+    if (error.state === 'committed' && error.pending) {
+      pendingPublish = error.pending;
+      canPublish = false;
+      articleDirty = false;
+      if (error.article) { currentArticle = error.article; articleIsNew = false; }
+      else currentArticle = await api('api/article?id=' + encodeURIComponent(currentArticle.id));
+      articleMode = 'manage';
+      document.querySelector('#article-status').textContent = '已提交，等待继续推送';
+    } else if (error.state === 'generated' && error.article) {
+      currentArticle = error.article;
+      articleIsNew = false;
+      articleMode = 'manage';
+      articleDirty = false;
+      document.querySelector('#article-status').textContent = '文章已生成在本地，发布未完成';
+    } else {
+      try {
+        if (!currentArticle) throw new Error('尚未生成');
+        const latest = await api('api/article?id=' + encodeURIComponent(currentArticle.id));
+        const saved = Object.entries(articleFields).every(([key, input]) => latest[key] === input.value);
+        if (saved) {
+          currentArticle = latest;
+          articleDirty = false;
+          document.querySelector('#article-status').textContent = '文件已保存到本地，发布未完成';
+        }
+      } catch { /* Keep the form for another attempt. */ }
+    }
+    if (currentArticle && !articleIsNew) {
+      document.querySelector('#article-path').textContent = `src/articles/${currentArticle.id}.${currentArticle.format === 'markdown' ? 'md' : 'njk'} · ${currentArticle.url}`;
+      document.querySelector('#article-slug-row').hidden = true;
+      document.querySelector('#article-save').textContent = '保存到本地';
+      articles = await api('api/articles');
+      updateMode();
+      renderArticles();
+    }
+    showNotice(error.message, true);
+  } finally { busy = false; updateButtons(); }
+}
+
+async function retryArticlePush() {
+  if (busy || !pendingPublish) return;
+  busy = true; updateButtons();
+  try {
+    await api('api/retry-push', { method: 'POST' });
+    pendingPublish = null;
+    canPublish = true;
+    document.querySelector('#article-status').textContent = '已推送，网站将在构建后更新';
+  } catch (error) { showNotice(error.message, true); }
+  finally { busy = false; updateButtons(); }
+}
+
+viewArticles.addEventListener('click', showArticles);
+viewLife.addEventListener('click', showLife);
+articleNew.addEventListener('click', newArticle);
+articleManage.addEventListener('click', showArticleManage);
+document.querySelector('#article-search').addEventListener('input', renderArticles);
+for (const input of [...Object.values(articleFields), document.querySelector('#article-slug')]) input.addEventListener('input', () => {
+  articleDirty = true;
+  document.querySelector('#article-status').textContent = articleIsNew ? '正在保存草稿…' : '修改尚未保存';
+  if (articleIsNew) {
+    clearTimeout(articleDraftTimer);
+    articleDraftTimer = setTimeout(async () => {
+      try { await saveNewArticleDraft(); document.querySelector('#article-status').textContent = '草稿已自动保存'; }
+      catch (error) { showNotice(error.message, true); }
+    }, 550);
+  }
+});
+document.querySelector('#article-save').addEventListener('click', () => saveArticle(false));
+document.querySelector('#article-publish').addEventListener('click', () => saveArticle(true));
+document.querySelector('#article-retry').addEventListener('click', retryArticlePush);
 
 Object.values(fields).forEach(input => input.addEventListener('input', queueSave));
 legacyHtml.addEventListener('input', queueSave);
@@ -728,12 +1096,27 @@ document.querySelectorAll('[data-filter]').forEach(button => button.addEventList
   renderRecords();
 }));
 window.addEventListener('beforeunload', event => {
-  if (currentRecord && editDirty) { event.preventDefault(); event.returnValue = ''; }
+  if ((currentRecord && editDirty) || articleDirty || lifeDraftDirty || uploadsInProgress) {
+    event.preventDefault(); event.returnValue = '';
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (lifeDraftLoaded && !currentRecord && lifeDraftDirty) {
+    const content = new Blob([JSON.stringify(lifeDraftSnapshot())], { type: 'application/json' });
+    navigator.sendBeacon(base + 'api/draft', content);
+  }
 });
 document.querySelector('#close-editor').addEventListener('click', async () => {
-  if (currentRecord && editDirty && !confirm('当前修改尚未保存。确定关闭编辑器吗？')) return;
-  try { await saveDraft(); await api('api/close', { method: 'POST' }); }
-  catch (error) { showNotice(error.message, true); return; }
+  if (busy || uploadsInProgress) return;
+  if (((currentRecord && editDirty) || articleDirty) && !confirm('当前修改尚未保存。确定关闭编辑器吗？')) return;
+  busy = true;
+  updateButtons();
+  try {
+    if (articleIsNew) { clearTimeout(articleDraftTimer); await saveNewArticleDraft(); }
+    await saveDraft();
+    await api('api/close', { method: 'POST' });
+  }
+  catch (error) { busy = false; updateButtons(); showNotice(error.message, true); return; }
   showNotice('编辑器已关闭。现在可以关闭这个标签页。');
   generateButton.disabled = true; publishButton.disabled = true;
 });

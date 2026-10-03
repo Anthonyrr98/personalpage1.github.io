@@ -4,6 +4,7 @@ _site/
 .DS_Store
 drafts/life.toml
 drafts/life-form.json
+drafts/article-form.json
 drafts/pending-publish.json
 drafts/life-uploads/
 __pycache__/

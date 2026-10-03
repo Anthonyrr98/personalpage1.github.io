@@ -1,8 +1,31 @@
 import footnote from "markdown-it-footnote";
-import { readFileSync } from "node:fs";
+import { createImagePipeline } from "./scripts/images.js";
+import { cleanGeneratedOutput } from "./scripts/clean_output.js";
+import { createLifeYearIndex, scopeFootnotes, syncLegacyLifeAnchors } from "./scripts/life_content.js";
 
 export default function (eleventyConfig) {
-  eleventyConfig.amendLibrary("md", (markdown) => markdown.use(footnote));
+  const images = createImagePipeline();
+  const lifeYears = createLifeYearIndex();
+  eleventyConfig.on("eleventy.before", async ({ directories }) => {
+    lifeYears.reset();
+    await cleanGeneratedOutput(directories.output);
+    await images.prepare(directories.output);
+  });
+  eleventyConfig.on("eleventy.after", () => {
+    const stats = images.summary();
+    console.log(`[images] Optimized ${stats.optimizedTags} image tags from ${stats.optimizedSources} originals; ${stats.variants} responsive variants (${(stats.generatedBytes / 1048576).toFixed(2)} MiB).`);
+  });
+  eleventyConfig.addTransform("responsive-images", function (content) {
+    return (this.page.outputPath || "").endsWith(".html") ? images.transform(content, this.page.url) : content;
+  });
+  eleventyConfig.addTransform("legacy-life-years", function (content) {
+    return /^\/media\/pages\/work\/work\/work(?:1[0-5]|[1-9])\.html$/.test(this.page.url)
+      ? syncLegacyLifeAnchors(content) : content;
+  });
+  eleventyConfig.addWatchTarget("media/**/*.{jpg,JPG,jpeg,png,webp}");
+  eleventyConfig.addWatchTarget("assets/images/**/*.{jpg,JPG,jpeg,png,webp}");
+  eleventyConfig.amendLibrary("md", (markdown) => scopeFootnotes(markdown.use(footnote)));
+  eleventyConfig.addCollection("life", (collection) => collection.getFilteredByTag("life"));
   eleventyConfig.addFilter("formatDate", (value) => {
     const date = new Date(value);
     return `${date.getUTCFullYear()}年${date.getUTCMonth() + 1}月${date.getUTCDate()}日`;
@@ -12,25 +35,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter("lifeYearStart", (entries, index) =>
     index === 0 || new Date(entries[index].date).getUTCFullYear() !== new Date(entries[index - 1].date).getUTCFullYear());
   eleventyConfig.addFilter("lifeYear", (value) => new Date(value).getUTCFullYear());
-  eleventyConfig.addFilter("lifeYearLinks", (entries) => {
-    const links = new Map();
-    for (let number = 1; number <= 15; number++) {
-      const page = readFileSync(new URL(`./src/legacy/work/work${number}.njk`, import.meta.url), "utf8");
-      for (const match of page.matchAll(/<span class="streamitem-date">\s*(20\d{2})/g)) {
-        const year = Number(match[1]);
-        if (!links.has(year)) links.set(year, `/media/pages/work/work/work${number}.html#life-year-${year}`);
-      }
-    }
-    const recent = entries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-    const modernYears = new Map();
-    recent.forEach((entry, index) => {
-      const year = new Date(entry.date).getUTCFullYear();
-      const page = Math.floor(index / 10);
-      modernYears.set(year, `${page ? `/work/page/${page + 1}/` : "/work.html"}#life-year-${year}`);
-    });
-    for (const [year, url] of modernYears) if (!links.has(year)) links.set(year, url);
-    return [...links].sort(([a], [b]) => b - a).map(([year, url]) => ({ year, url }));
-  });
+  eleventyConfig.addFilter("lifeYearLinks", (entries) => lifeYears.links(entries));
   eleventyConfig.addFilter("lifePager", (entryCount, legacyPage = 0, newPageIndex = 0) => {
     const total = 15 + Math.max(1, Math.ceil(Number(entryCount) / 10));
     const current = Number(legacyPage) || total - Number(newPageIndex);
@@ -48,7 +53,6 @@ export default function (eleventyConfig) {
   });
   eleventyConfig.addPassthroughCopy("assets");
   eleventyConfig.addPassthroughCopy("highlight");
-  eleventyConfig.addPassthroughCopy("media/**/*.{jpg,JPG,png}");
   eleventyConfig.addPassthroughCopy("verification.html");
 
   return {

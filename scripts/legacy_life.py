@@ -1,7 +1,9 @@
 """Manage entries embedded in the original paginated life pages without changing their URLs."""
 
+from datetime import date
 from hashlib import sha256
 from html import unescape
+from html.parser import HTMLParser
 import os
 from pathlib import Path
 import re
@@ -19,6 +21,49 @@ DATE = re.compile(r'(<span\s+class="streamitem-date"[^>]*>)(.*?</a>\s*)(</span>)
 IMAGE = re.compile(r'<img\b', re.I)
 HIDE_OPEN = "{# life-editor:hidden #}{% if false %}"
 HIDE_CLOSE = "{% endif %}{# life-editor:end #}"
+
+
+class DateTextParser(HTMLParser):
+    """Read the outer date span, including its nested ordinal and link."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.depth = 0
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "span":
+            if self.depth or "streamitem-date" in (dict(attrs).get("class") or "").split():
+                self.depth += 1
+
+    def handle_endtag(self, tag):
+        if tag == "span" and self.depth:
+            self.depth -= 1
+
+    def handle_data(self, value):
+        if self.depth:
+            self.parts.append(value)
+
+
+def date_text(html):
+    parser = DateTextParser()
+    parser.feed(html)
+    return re.sub(r"\s+", "", "".join(parser.parts))
+
+
+def validate_changed_date(original, updated):
+    before, after = date_text(original), date_text(updated)
+    # Keep incomplete historical dates when editing unrelated content. Advanced
+    # HTML editing can also deliberately remove the date altogether.
+    if after == before or not after:
+        return
+    match = re.fullmatch(r"(\d{4})年(\d{1,2})月(\d{1,2})[日号]", after)
+    try:
+        if not match:
+            raise ValueError
+        date(*(int(part) for part in match.groups()))
+    except ValueError as error:
+        raise ValueError("修改后的日期必须是真实的年月日；不确定时请保留原日期") from error
 
 
 def page_path(number):
@@ -56,13 +101,11 @@ def parse(entry_id):
     title = TITLE.search(html)
     if not title:
         raise ValueError("旧记录缺少标题")
-    date = DATE.search(html)
-    date_text = re.sub(r"<[^>]+>", "", date.group(2)) if date else ""
-    date_text = re.sub(r"\s+", "", unescape(date_text))
-    year = re.search(r"(20\d{2})年", date_text)
-    month = re.search(r"(\d{1,2})月", date_text)
-    day = re.search(r"(\d{1,2})(?:日|号)", date_text)
-    day_value = f"{year.group(1)}-{int(month.group(1)):02}-{int(day.group(1)):02}" if year and month and day else date_text
+    stamp = date_text(html)
+    year = re.search(r"(\d{4})年", stamp)
+    month = re.search(r"(\d{1,2})月", stamp)
+    day = re.search(r"(\d{1,2})(?:日|号)", stamp)
+    day_value = f"{year.group(1)}-{int(month.group(1)):02}-{int(day.group(1)):02}" if year and month and day else stamp
     prefix = text[:start]
     suffix = text[end:]
     hidden = prefix.endswith(HIDE_OPEN) and suffix.startswith(HIDE_CLOSE)
@@ -116,6 +159,7 @@ def change(entry_id, version, action, html=None):
         html = html.strip().replace("\n", "\r\n" if "\r\n" in text else "\n")
         if len(spans(html)) != 1 or spans(html)[0] != (0, len(html)):
             raise ValueError("旧记录 HTML 必须只包含一个完整的 stream-lr 区块")
+        validate_changed_date(entry["html"], html)
         updated = text[:start] + html + text[end:]
     else:
         raise ValueError("未知操作")

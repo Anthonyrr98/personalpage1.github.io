@@ -1,0 +1,18 @@
+---
+layout: layouts/base.njk
+---
+<div class="main-content">
+  <div class="as">
+    <main>
+      <article>
+        <header>
+          <p class="as-date" itemprop="datePublished">{{ dateLabel }}<span>/</span> {{ category or '文章' }}</p>
+          <h1 class="as-title">{{ cardTitle or title }}</h1>
+          {% if summary %}<p class="as-subtitle">{{ summary }}</p>{% endif %}
+        </header>
+        {% if cover %}<figure><img src="{{ cover }}" alt="{{ cardTitle or title }}" loading="lazy"></figure>{% endif %}
+        {{ content | safe }}
+      </article>
+    </main>
+  </div>
+</div>

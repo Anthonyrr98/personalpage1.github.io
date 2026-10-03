@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>生活记录编辑器 · 赵荣力</title>
+  <title>生活记录编辑器 · 文章 · 赵荣力</title>
   <link rel="stylesheet" href="app.css">
   <script src="app.js" defer></script>
 </head>
@@ -12,30 +12,61 @@
   <div class="paper-grain" aria-hidden="true"></div>
   <div class="page-shell">
     <header class="masthead">
-      <div class="brand"><span class="brand-mark">RL<span class="brand-dot">.</span></span><span class="brand-rule"></span><span class="brand-label">生活记录 / LOCAL STUDIO</span></div>
+      <div class="brand"><span class="brand-mark">RL<span class="brand-dot">.</span></span><span class="brand-rule"></span><span class="brand-label">内容编辑器 / LOCAL STUDIO</span></div>
       <div class="local-indicator"><span class="pulse-dot"></span>仅在这台电脑运行</div>
     </header>
 
     <nav class="studio-nav" aria-label="编辑器工作区">
       <span class="studio-nav-label">WORKSPACE <span>工作台</span></span>
       <div class="studio-nav-items">
-        <button id="view-publish" type="button" aria-pressed="true"><span class="studio-nav-number">01</span> 发布记录</button>
-        <button id="view-manage" type="button" aria-pressed="false"><span class="studio-nav-number">02</span> 编辑与管理 <span id="nav-entry-count" class="studio-nav-count"></span></button>
+        <button id="view-life" type="button" aria-pressed="true"><span class="studio-nav-number">01</span> 生活记录 <span id="nav-entry-count" class="studio-nav-count"></span></button>
+        <button id="view-articles" type="button" aria-pressed="false"><span class="studio-nav-number">02</span> 文章 <span id="nav-article-count" class="studio-nav-count"></span></button>
       </div>
-      <span class="studio-nav-end">LIFE STUDIO / LOCAL</span>
+      <span class="studio-nav-end">CONTENT STUDIO / LOCAL</span>
+    </nav>
+
+    <nav class="mode-nav" id="life-actions" aria-label="生活记录操作">
+      <span class="mode-nav-label">生活记录 <small>LIFE</small></span>
+      <div class="mode-nav-actions"><button id="view-publish" type="button" aria-pressed="true">写新记录</button><button id="view-manage" type="button" aria-pressed="false">查看与管理</button></div>
+    </nav>
+    <nav class="mode-nav" id="article-actions" aria-label="文章操作" hidden>
+      <span class="mode-nav-label">文章 <small>ARTICLES</small></span>
+      <div class="mode-nav-actions"><button id="article-new" type="button" aria-pressed="false">写新文章</button><button id="article-manage" type="button" aria-pressed="true">查看与编辑</button></div>
     </nav>
 
     <main>
       <div class="intro-row">
         <div>
-          <div class="eyebrow"><span>写给自己的小日子</span><span class="eyebrow-line"></span><span id="mode-badge">01 / NEW ENTRY</span></div>
+          <div class="eyebrow"><span id="section-kicker">写给自己的小日子</span><span class="eyebrow-line"></span><span id="mode-badge">01 / NEW ENTRY</span></div>
           <h1 id="view-heading">把日子，<em>写成一页。</em></h1>
           <p id="view-description" class="intro-copy">写下今天的片段，放上喜欢的照片。剩下的交给编辑器。</p>
         </div>
-        <div class="date-stamp" aria-hidden="true"><span>THE<br>EVERYDAY</span><span class="stamp-flower">✳</span></div>
+        <div class="date-stamp" aria-hidden="true"><span id="section-stamp">THE<br>EVERYDAY</span><span class="stamp-flower">✳</span></div>
       </div>
 
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+      <section id="article-workspace" class="article-workspace" hidden aria-labelledby="article-heading">
+        <div class="library-heading"><div><p class="section-kicker">ARTICLES</p><h2 id="article-heading">文章归档</h2><p id="article-intro">选择现有文章继续修改。</p></div></div>
+        <div class="article-layout">
+          <div class="sheet" id="article-list-panel"><label class="field-label" for="article-search">查找文章</label><input id="article-search" type="search" placeholder="搜索标题或日期"><div id="article-list" class="article-list"></div></div>
+          <div class="sheet article-form" id="article-form" hidden>
+            <p id="article-path" class="field-hint"></p>
+            <div id="article-slug-row"><label class="field-label" for="article-slug">网址名称</label><input id="article-slug" type="text" maxlength="80" placeholder="例如：my-first-article"><p class="field-hint">使用小写英文字母、数字和中划线；发布后网址固定。</p></div>
+            <label class="field-label" for="article-title">浏览器标题</label><input id="article-title" type="text" maxlength="1000">
+            <label class="field-label" for="article-cardTitle">列表标题</label><input id="article-cardTitle" type="text" maxlength="1000">
+            <label class="field-label" for="article-date">日期</label><input id="article-date" type="date">
+            <label class="field-label" for="article-category">分类</label><input id="article-category" type="text" maxlength="1000">
+            <label class="field-label" for="article-description">页面简介</label><input id="article-description" type="text" maxlength="1000">
+            <label class="field-label" for="article-summary">列表摘要</label><input id="article-summary" type="text" maxlength="1000">
+            <label class="field-label" for="article-cover">封面图片地址</label><input id="article-cover" type="text" maxlength="1000">
+            <label class="field-label" for="article-body" id="article-body-label">正文</label><textarea id="article-body" spellcheck="false"></textarea>
+            <p class="field-hint" id="article-body-hint"></p>
+            <div class="publish-actions"><button id="article-save" class="button-secondary" type="button">保存到本地</button><button id="article-publish" class="button-primary" type="button">保存并发布 ↗</button><button id="article-retry" class="button-primary" type="button" hidden>继续推送本次提交 ↗</button></div>
+            <p id="article-status" class="field-hint" role="status"></p>
+          </div>
+        </div>
+      </section>
 
       <section class="library" id="manage-library" aria-labelledby="library-heading" hidden>
         <div class="library-heading">
@@ -55,7 +86,7 @@
             <label for="title" class="field-label">标题 <span class="required">必填</span></label>
             <input id="title" name="title" type="text" maxlength="120" placeholder="例如：周末去公园散步" autocomplete="off" required>
             <div class="field-row">
-              <div><label for="date" class="field-label">日期 <span class="required" id="date-requirement">必填</span></label><input id="date" name="date" type="date" required></div>
+              <div><label for="date" class="field-label">日期 <span class="required" id="date-requirement">必填</span></label><input id="date" name="date" type="date" required><p class="field-hint" id="date-hint" hidden>留空会保留旧记录的原日期。</p></div>
               <div><label for="description" class="field-label">一句简介 <span class="optional">选填</span></label><input id="description" name="description" type="text" maxlength="200" placeholder="留空时使用标题"></div>
             </div>
           </section>
@@ -102,7 +133,7 @@
         </aside>
       </div>
     </main>
-    <footer class="footer"><span>RL / LIFE STUDIO</span><span>平凡的一天，也值得被记住。</span><button id="close-editor" type="button">关闭编辑器</button></footer>
+    <footer class="footer"><span>RL / CONTENT STUDIO</span><span>把值得记住的内容，留在这里。</span><button id="close-editor" type="button">关闭编辑器</button></footer>
   </div>
 </body>
 </html>

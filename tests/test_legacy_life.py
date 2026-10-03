@@ -9,6 +9,30 @@ from scripts import legacy_life
 
 
 class LegacyLifeTests(unittest.TestCase):
+    def test_changed_dates_are_validated_without_rejecting_historical_dates(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "src/legacy/work/work1.njk"
+            path.parent.mkdir(parents=True)
+            template = '<div class="stream-lr"><div class="stream-meta"><span class="streamitem-date">{}</span></div><div class="stream-main"><h3 class="streamitem-title">旧记录</h3></div></div>'
+            historical = '2024<span>年</span> <a href="">春天</a>'
+            path.write_text(template.format(historical), encoding="utf-8")
+            with patch.object(legacy_life, "ROOT", root):
+                entry = legacy_life.parse("legacy-work1-1")
+                changed = entry["html"].replace("旧记录", "新标题")
+                legacy_life.change(entry["id"], entry["version"], "save", changed)
+                entry = legacy_life.parse(entry["id"])
+                self.assertEqual(entry["date"], "2024年春天")
+                for invalid in ('0<span>年</span> <a href="">undefined月undefined号</a>',
+                                '2024<span>年</span> <a href="">2月30号</a>',
+                                '2024年13月1日', 'NaN年NaN月NaN号'):
+                    with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "真实的年月日"):
+                        legacy_life.change(entry["id"], entry["version"], "save", template.format(invalid))
+                    self.assertEqual(legacy_life.parse(entry["id"])["version"], entry["version"])
+                valid = template.format('2024<span>年</span> <a href="">2月29号</a>')
+                legacy_life.change(entry["id"], entry["version"], "save", valid)
+                self.assertEqual(legacy_life.parse(entry["id"])["date"], "2024-02-29")
+
     def test_edit_hide_show_and_delete_one_block(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
